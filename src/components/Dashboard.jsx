@@ -19,6 +19,7 @@ import {
   Sparkles,
   LogOut,
   Shield,
+  ExternalLink,
 } from "lucide-react";
 import Logo from "./Logo";
 
@@ -657,10 +658,15 @@ export default function Dashboard() {
                 ) : verses.length > 0 ? (
                   <div className="space-y-4">
                     {verses.map((verse, idx) => (
-                      <div
+                      <button
                         key={verse.id}
+                        onClick={() =>
+                          goToBibleReference(
+                            `${verse.book.name} ${verse.chapter}:${verse.number}`
+                          )
+                        }
                         style={{ animationDelay: `${idx * 100}ms` }}
-                        className="animate-stagger-item bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-200/50 transition-all duration-500 group relative overflow-hidden"
+                        className="w-full text-left animate-stagger-item bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-200/50 transition-all duration-500 group relative overflow-hidden"
                       >
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out" />
 
@@ -670,10 +676,14 @@ export default function Dashboard() {
 
                         <div className="flex justify-between items-center border-t border-slate-50 pt-3 mt-2">
                           <span className="text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 group-hover:bg-amber-50 group-hover:text-amber-700 group-hover:border-amber-100 transition-colors duration-300">
+                            <span className="mr-1">📖</span>
                             {verse.book.name} {verse.chapter}:{verse.number}
                           </span>
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                            Ler <ExternalLink size={12} />
+                          </span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                     {verses.length === 0 && !loadingVerses && (
                       <p className="text-slate-400 text-center py-10">

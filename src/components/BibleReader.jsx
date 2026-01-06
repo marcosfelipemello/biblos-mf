@@ -105,41 +105,53 @@ export default function BibleReader({
     loadChapter();
   }, [book, chapter, getChapter]);
 
-  // Let's use a Mutable Ref to track "didRestore".
+  // Track previous location to detect chapter changes vs just re-renders
+  const lastLocation = React.useRef({ book: null, chapter: null });
   const didRestore = React.useRef(false);
 
   React.useLayoutEffect(() => {
     // Wait for content to load before adjusting scroll
     if (loading || verses.length === 0) return;
 
+    const currentLocationKey = `${book}-${chapter}`;
+    const prevLocationKey = `${lastLocation.current.book}-${lastLocation.current.chapter}`;
+    const locationChanged = currentLocationKey !== prevLocationKey;
+
     if (scrollContainerRef && scrollContainerRef.current) {
       // 1. Check for Target Verse (Priority)
       if (targetVerse) {
+        // Create a composite ID to ensure we don't pick up old elements if any
         const verseEl = document.getElementById(`verse-${targetVerse}`);
         if (verseEl) {
           verseEl.scrollIntoView({ behavior: "smooth", block: "center" });
           if (onScrollComplete) onScrollComplete();
-          didRestore.current = true; // Mark as handled
+
+          didRestore.current = true; // Mark as settled
+          lastLocation.current = { book, chapter };
           return;
         }
       }
 
-      // 2. Standard Scroll Restoration
-      if (!didRestore.current) {
-        // First load with content: Restore position or start at top
-        if (initialScroll > 0) {
+      // 2. Standard Scroll Handling
+      if (locationChanged) {
+        // If location changed, we should generally reset to 0 UNLESS we possess a heavy persistence rule
+        // But here, we handle "initialScroll" only on MOUNT usually.
+        // However, if we navigate chapters, we want 0.
+
+        if (!didRestore.current && initialScroll > 0) {
+          // Initial mount restoration
           scrollContainerRef.current.scrollTop = initialScroll;
         } else {
+          // Navigate to new chapter -> Top
+          // But don't do this if we just handled a targetVerse (which returns above)
           scrollContainerRef.current.scrollTop = 0;
         }
+
         didRestore.current = true;
-      } else {
-        // Subsequent updates (e.g. Chapter change) -> Scroll to Top
-        // Only if we aren't targeting a verse (handled above)
-        if (!targetVerse) {
-          scrollContainerRef.current.scrollTop = 0;
-        }
+        lastLocation.current = { book, chapter };
       }
+
+      // If location didn't change (e.g. targetVerse cleared), do NOTHING.
     }
   }, [
     loading,
@@ -148,6 +160,8 @@ export default function BibleReader({
     scrollContainerRef,
     targetVerse,
     onScrollComplete,
+    book,
+    chapter,
   ]);
 
   const handleNext = () => {

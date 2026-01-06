@@ -42,7 +42,7 @@ export const BOOK_NAMES = {
   mc: "Marcos",
   lc: "Lucas",
   jo: "João",
-  at: "Atos",
+  atos: "Atos",
   rm: "Romanos",
   "1co": "1 Coríntios",
   "2co": "2 Coríntios",
