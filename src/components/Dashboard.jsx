@@ -207,7 +207,14 @@ export default function Dashboard() {
       else if (categoryFilter === "parable")
         filtered = entities.filter((e) => e.type === "parable");
 
-      return filtered.sort((a, b) => a.name.localeCompare(b.name));
+      return filtered.sort((a, b) => {
+        // Special sort for parables using orderIndex
+        if (categoryFilter === "parable") {
+          return (a.orderIndex || 999) - (b.orderIndex || 999);
+        }
+        // Default alphabetic sort
+        return a.name.localeCompare(b.name);
+      });
     }
     return [];
   }, [searchTerm, categoryFilter, entities]);
@@ -236,7 +243,7 @@ export default function Dashboard() {
       // Improved back logic with memory
       if (previousView === "bible") {
         setView("bible");
-      } else if (searchTerm.length > 0) {
+      } else if (searchTerm.length > 0 || categoryFilter) {
         setView("results");
       } else {
         setView("home");
