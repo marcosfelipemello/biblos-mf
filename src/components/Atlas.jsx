@@ -62,12 +62,12 @@ export default function Atlas({
       filter: (e) => e.type === "place",
     },
     {
-      id: "artifact",
-      label: "Artefatos",
-      icon: Box,
-      color: "text-amber-500",
-      bg: "bg-amber-50",
-      filter: (e) => e.type === "artifact",
+      id: "parable",
+      label: "Parábolas",
+      icon: Scroll,
+      color: "text-rose-500",
+      bg: "bg-rose-50",
+      filter: (e) => e.type === "parable",
     },
     {
       id: "abstract",
@@ -78,12 +78,12 @@ export default function Atlas({
       filter: (e) => e.type === "abstract" || e.type === "symbol",
     },
     {
-      id: "parable",
-      label: "Parábolas",
-      icon: Scroll,
-      color: "text-rose-500",
-      bg: "bg-rose-50",
-      filter: (e) => e.type === "parable",
+      id: "artifact",
+      label: "Artefatos",
+      icon: Box,
+      color: "text-amber-500",
+      bg: "bg-amber-50",
+      filter: (e) => e.type === "artifact",
     },
   ];
 
