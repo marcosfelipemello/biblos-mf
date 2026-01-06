@@ -7586,6 +7586,306 @@ export const KNOWLEDGE_BASE = {
       description: "Símbolo da imortalidade e sustentação divina contínua.",
       related: ["Deus", "Adão"],
     },
+    // --- ARTEFATOS SAGRADOS (CULTO) ---
+    {
+      id: "art_arca_alianca",
+      name: "Arca da Aliança",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 25:10",
+      description:
+        "Caixa de madeira de acácia coberta de ouro, habitação da presença de Deus e símbolo máximo da aliança.",
+      related: ["Moisés", "Davi"],
+    },
+    {
+      id: "art_propiciatorio",
+      name: "Propiciatório",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 25:17",
+      description:
+        "A tampa de ouro puro da Arca, onde o sangue era aspergido para expiação dos pecados.",
+      related: ["Moisés", "Arão"],
+    },
+    {
+      id: "art_menora",
+      name: "Menorá",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 25:31",
+      description:
+        "O candelabro de ouro de sete lâmpadas que iluminava o Lugar Santo continuamente.",
+      related: ["Moisés"],
+    },
+    {
+      id: "art_mesa_paes",
+      name: "Mesa dos Pães",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 25:23",
+      description:
+        "Mesa para os doze pães da proposição, simbolizando a provisão e comunhão de Deus com as doze tribos.",
+      related: [],
+    },
+    {
+      id: "art_altar_incenso",
+      name: "Altar de Incenso",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 30:1",
+      description:
+        "Altar de ouro para queima de incenso aromático, representando as orações dos santos.",
+      related: ["Arão"],
+    },
+    {
+      id: "art_altar_holocausto",
+      name: "Altar de Bronze",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 27:1",
+      description:
+        "O grande altar no pátio para sacrifícios de animais, lugar de redenção e substituição.",
+      related: ["Moisés"],
+    },
+    {
+      id: "art_bacia_bronze",
+      name: "Bacia de Bronze",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 30:18",
+      description:
+        "Lavatório para purificação sacerdotal antes de entrar no santuário.",
+      related: ["Arão"],
+    },
+    {
+      id: "art_veu_templo",
+      name: "Véu do Templo",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 26:31",
+      description:
+        "A espessa cortina que separava o Lugar Santo do Santo dos Santos, rasgada na morte de Jesus.",
+      related: ["Jesus"],
+    },
+
+    // --- VESTES E INSÍGNIAS SACERDOTAIS ---
+    {
+      id: "art_efode",
+      name: "Éfode",
+      type: "artifact",
+      category: "Vestimenta",
+      origin_ref: "Êxodo 28:6",
+      description:
+        "Colete sagrado do Sumo Sacerdote, ricamente bordado, portando as pedras sardonicas.",
+      related: ["Arão"],
+    },
+    {
+      id: "art_peitoral",
+      name: "Peitoral do Juízo",
+      type: "artifact",
+      category: "Vestimenta",
+      origin_ref: "Êxodo 28:15",
+      description:
+        "Peça quadrada com doze pedras preciosas representando as tribos de Israel, usada sobre o coração.",
+      related: ["Arão"],
+    },
+    {
+      id: "art_urim_tumim",
+      name: "Urim e Tumim",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 28:30",
+      description:
+        "Pedras sagradas usadas pelo Sumo Sacerdote para consultar a Deus e obter direção divina.",
+      related: ["Eleazar", "Davi"],
+    },
+    {
+      id: "art_mitra",
+      name: "Mitra",
+      type: "artifact",
+      category: "Vestimenta",
+      origin_ref: "Êxodo 28:4",
+      description:
+        "Turbante de linho do Sumo Sacerdote com a lâmina de ouro 'Santidade ao Senhor'.",
+      related: ["Arão"],
+    },
+
+    // --- ARTEFATOS DA ARCA ---
+    {
+      id: "art_tabuas_lei",
+      name: "Tábuas da Lei",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 31:18",
+      description:
+        "As duas tábuas de pedra escritas pelo dedo de Deus com os Dez Mandamentos.",
+      related: ["Moisés"],
+    },
+    {
+      id: "art_vara_arao",
+      name: "Vara de Arão",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Números 17:8",
+      description:
+        "O cajado sacerdotal que floresceu miraculosamente para confirmar a eleição divina.",
+      related: ["Arão"],
+    },
+    {
+      id: "art_pote_mana",
+      name: "Pote de Maná",
+      type: "artifact",
+      category: "Sagrado",
+      origin_ref: "Êxodo 16:33",
+      description:
+        "Vaso de ouro contendo uma medida de maná como memorial da provisão no deserto.",
+      related: ["Moisés"],
+    },
+
+    // --- INSTRUMENTOS MUSICAIS ---
+    {
+      id: "art_shofar",
+      name: "Shofar (Chifre)",
+      type: "artifact",
+      category: "Instrumento",
+      origin_ref: "Josué 6:4",
+      description:
+        "Trombeta feita de chifre de carneiro, usada para convocar, avisar e celebrar.",
+      related: ["Josué"],
+    },
+    {
+      id: "art_harpa",
+      name: "Harpa (Kinnor)",
+      type: "artifact",
+      category: "Instrumento",
+      origin_ref: "1 Samuel 16:23",
+      description:
+        "Instrumento de cordas amado por Davi, usado para louvor e acalmar o espírito.",
+      related: ["Davi"],
+    },
+    {
+      id: "art_trombeta_prata",
+      name: "Trombeta de Prata",
+      type: "artifact",
+      category: "Instrumento",
+      origin_ref: "Números 10:2",
+      description:
+        "Usada pelos sacerdotes para sinalizar a marcha do acampamento e festas.",
+      related: [],
+    },
+
+    // --- GUERRA E AUTORIDADE ---
+    {
+      id: "art_funda_davi",
+      name: "Funda",
+      type: "artifact",
+      category: "Arma",
+      origin_ref: "1 Samuel 17:40",
+      description:
+        "Arma simples de pastor usada por Davi para derrotar o gigante Golias.",
+      related: ["Davi"],
+    },
+    {
+      id: "art_cetro_ouro",
+      name: "Cetro",
+      type: "artifact",
+      category: "Realeza",
+      origin_ref: "Ester 4:11",
+      description:
+        "Bastão de autoridade real, símbolo de poder e favor do rei.",
+      related: ["Ester", "Assuero"],
+    },
+    {
+      id: "art_coroa_espinhos",
+      name: "Coroa de Espinhos",
+      type: "artifact",
+      category: "Paixão",
+      origin_ref: "Mateus 27:29",
+      description:
+        "Coroa de zombaria tecida pelos soldados romanos para Jesus, o Rei dos Judeus.",
+      related: ["Jesus"],
+    },
+
+    // --- OBJETOS DE MILAGRE E COTIDIANO ---
+    {
+      id: "art_cajado_moises",
+      name: "Cajado de Moisés",
+      type: "artifact",
+      category: "Milagre",
+      origin_ref: "Êxodo 4:2",
+      description:
+        "O vara de pastor que se tornou instrumento de poder para realizar pragas e abrir o mar.",
+      related: ["Moisés"],
+    },
+    {
+      id: "art_capa_eliseu",
+      name: "Capa de Elias/Eliseu",
+      type: "artifact",
+      category: "Milagre",
+      origin_ref: "2 Reis 2:8",
+      description:
+        "Manto profético usado para abrir o rio Jordão e transmitir a unção dobrada.",
+      related: ["Elias", "Eliseu"],
+    },
+    {
+      id: "art_vaso_alabastro",
+      name: "Vaso de Alabastro",
+      type: "artifact",
+      category: "Cotidiano",
+      origin_ref: "Lucas 7:37",
+      description:
+        "Recipiente com perfume precioso quebrado em adoração aos pés de Jesus.",
+      related: ["Maria Madalena", "Jesus"],
+    },
+    {
+      id: "art_moeda_peixe",
+      name: "Dracma (Peixe)",
+      type: "artifact",
+      category: "Milagre",
+      origin_ref: "Mateus 17:27",
+      description:
+        "A moeda encontrada na boca do peixe para pagar o imposto do Templo.",
+      related: ["Pedro", "Jesus"],
+    },
+    {
+      id: "art_tunica_inconsutil",
+      name: "Túnica Sem Costura",
+      type: "artifact",
+      category: "Paixão",
+      origin_ref: "João 19:23",
+      description:
+        "A veste de Jesus, tecida numa peça só, sorteada pelos soldados na cruz.",
+      related: ["Jesus"],
+    },
+    {
+      id: "art_cruz_madeiro",
+      name: "Madeiro (Cruz)",
+      type: "artifact",
+      category: "Paixão",
+      origin_ref: "Gálatas 3:13",
+      description:
+        "O instrumento de maldição que se tornou o trono da graça e redenção.",
+      related: ["Jesus"],
+    },
+    {
+      id: "art_placa_inri",
+      name: "Placa (INRI)",
+      type: "artifact",
+      category: "Paixão",
+      origin_ref: "João 19:19",
+      description:
+        "O título escrito por Pilatos: Jesus Nazareno, Rei dos Judeus.",
+      related: ["Jesus", "Pilatos"],
+    },
+    {
+      id: "art_rolos_livro",
+      name: "Rolos (Pergaminhos)",
+      type: "artifact",
+      category: "Escrita",
+      origin_ref: "Jeremias 36:2",
+      description: "Manuscritos antigos contendo as profecias e a Lei de Deus.",
+      related: ["Jeremias", "Baruque"],
+    },
   ],
   verses: [],
 };
