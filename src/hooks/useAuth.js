@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut,
 } from "firebase/auth";
 
@@ -59,11 +60,23 @@ export function useAuth() {
     }
   };
 
+  const loginAnonymously = async () => {
+    setError(null);
+    try {
+      await signInAnonymously(auth);
+    } catch (err) {
+      console.error("Anonymous Login Error:", err);
+      setError(err);
+      throw err;
+    }
+  };
+
   return {
     user,
     loading,
     error,
     login,
+    loginAnonymously,
     register,
     logout,
     isAuthenticated: !!user,
