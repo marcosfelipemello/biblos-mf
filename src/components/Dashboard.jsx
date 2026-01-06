@@ -4,7 +4,8 @@ import { useBiblosData } from "../hooks/useBiblosData";
 import ErrorDisplay from "./ErrorDisplay";
 import AdminPanel from "./AdminPanel";
 import VerseDisplay from "./VerseDisplay";
-import ExitConfirmation from "./ExitConfirmation"; // Import new component
+import ExitConfirmation from "./ExitConfirmation";
+import BibleReader from "./BibleReader"; // Import added
 import { useBibleApi } from "../hooks/useBibleApi";
 import {
   Search,
@@ -30,6 +31,33 @@ export default function Dashboard() {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [verses, setVerses] = useState([]);
   const [loadingVerses, setLoadingVerses] = useState(false);
+  const [previousView, setPreviousView] = useState(null); // Track where we came from
+
+  // READER STATE (Persisted in LocalStorage)
+  const [readerBook, setReaderBook] = useState(() => {
+    return localStorage.getItem("biblo_book") || "Gênesis";
+  });
+  const [readerChapter, setReaderChapter] = useState(() => {
+    return parseInt(localStorage.getItem("biblo_chapter")) || 1;
+  });
+  const [bibleScrollY, setBibleScrollY] = useState(() => {
+    return parseInt(localStorage.getItem("biblo_scrollY")) || 0;
+  });
+  // New state for targeted verse navigation
+  const [targetVerse, setTargetVerse] = useState(null);
+
+  const mainRef = React.useRef(null);
+
+  // Persist Reader State
+  useEffect(() => {
+    localStorage.setItem("biblo_book", readerBook);
+    localStorage.setItem("biblo_chapter", readerChapter.toString());
+  }, [readerBook, readerChapter]);
+
+  // Persist Scroll State (only when it updates)
+  useEffect(() => {
+    localStorage.setItem("biblo_scrollY", bibleScrollY.toString());
+  }, [bibleScrollY]);
 
   const [activeTab, setActiveTab] = useState("origin"); // origin, mentions
   const [showExitConfirm, setShowExitConfirm] = useState(false); // State for exit modal
@@ -70,6 +98,36 @@ export default function Dashboard() {
     };
   }, [view, showExitConfirm]); // Dependencies ensure we capture current view state
 
+  // Function to handle "Go To Reference"
+  const goToBibleReference = (refString) => {
+    if (!refString) return;
+    try {
+      // Expected format: "1 Reis 12:1" or "Mateus 5:1"
+      // Split by last space to separate Book from Chapter:Verse
+      const lastSpaceIndex = refString.lastIndexOf(" ");
+      if (lastSpaceIndex === -1) return;
+
+      const bookPart = refString.substring(0, lastSpaceIndex).trim(); // "1 Reis"
+      const numberPart = refString.substring(lastSpaceIndex + 1).trim(); // "12:1"
+
+      const [chapterStr, verseStr] = numberPart.split(":");
+      const chapter = parseInt(chapterStr);
+      const verse = verseStr ? parseInt(verseStr) : null;
+
+      if (bookPart && chapter) {
+        setReaderBook(bookPart);
+        setReaderChapter(chapter);
+        if (verse) setTargetVerse(verse);
+
+        // Reset scroll so it doesn't just restore old position
+        setBibleScrollY(0);
+        setView("bible");
+      }
+    } catch (e) {
+      console.error("Failed to parse reference:", refString, e);
+    }
+  };
+
   // Check if current user is the specific admin.
   const isAdmin = user?.email === "marcosfelipemellosantana@gmail.com";
 
@@ -95,6 +153,12 @@ export default function Dashboard() {
   const { searchVerses, loading: apiLoading } = useBibleApi();
 
   const selectEntity = async (entity) => {
+    // Save scroll position if we are leaving bible view
+    if (view === "bible" && mainRef.current) {
+      setBibleScrollY(mainRef.current.scrollTop);
+    }
+
+    setPreviousView(view); // Save current view key (e.g. 'bible')
     setSelectedEntity(entity);
     setView("details");
     setActiveTab("origin");
@@ -104,16 +168,20 @@ export default function Dashboard() {
 
   const goBack = () => {
     if (view === "details") {
-      // improved back logic:
-      if (searchTerm.length > 0) {
+      // Improved back logic with memory
+      if (previousView === "bible") {
+        setView("bible");
+      } else if (searchTerm.length > 0) {
         setView("results");
       } else {
         setView("home");
       }
+
       setTimeout(() => {
         setSelectedEntity(null);
         setVerses([]);
         setActiveTab("origin");
+        setPreviousView(null); // Reset
       }, 300);
     } else if (view === "admin") {
       setView("home");
@@ -263,7 +331,10 @@ export default function Dashboard() {
       {status === "error" && <ErrorDisplay message={errorMsg} />}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 scroll-smooth">
+      <main
+        ref={mainRef}
+        className="flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 scroll-smooth"
+      >
         {view === "home" && status !== "error" && (
           <div className="flex flex-col items-center justify-center h-full text-center pb-20 animate-enter-view">
             <div className="mb-6 hover:scale-105 transition-transform duration-500 ease-out animate-[bounce_3s_infinite]">
@@ -527,24 +598,33 @@ export default function Dashboard() {
             {activeTab === "origin" && (
               <div className="space-y-4 animate-enter-view">
                 {selectedEntity.origin_ref ? (
-                  <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden">
+                  <button
+                    onClick={() =>
+                      goToBibleReference(selectedEntity.origin_ref)
+                    }
+                    className="w-full text-left bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden hover:bg-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all group"
+                  >
                     <div className="flex items-center gap-2 mb-3 text-amber-800">
                       <BookOpen size={20} />
-                      <h3 className="font-bold text-lg">
+                      <h3 className="font-bold text-lg group-hover:text-amber-900 transition-colors">
                         Primeira Aparição / Origem
                       </h3>
+                      <ExternalLink
+                        size={16}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-600"
+                      />
                     </div>
                     <div className="relative z-10">
                       <VerseDisplay reference={selectedEntity.origin_ref} />
-                      <div className="mt-2 text-xs font-bold text-amber-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded inline-block">
+                      <div className="mt-2 text-xs font-bold text-amber-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded inline-block group-hover:bg-white transition-colors">
                         {selectedEntity.origin_ref}
                       </div>
                     </div>
                     {/* Decorative Icon */}
-                    <div className="absolute -bottom-4 -right-4 text-amber-100 transform rotate-12">
+                    <div className="absolute -bottom-4 -right-4 text-amber-100 transform rotate-12 group-hover:rotate-6 transition-transform">
                       <LayoutGrid size={100} />
                     </div>
-                  </div>
+                  </button>
                 ) : (
                   <p className="text-slate-400 italic">
                     História de origem não cadastrada.
@@ -612,10 +692,68 @@ export default function Dashboard() {
             )}
           </div>
         )}
+
+        {/* VIEW: BIBLE READER */}
+        {view === "bible" && (
+          <BibleReader
+            entities={entities}
+            onEntityClick={selectEntity}
+            currentBook={readerBook}
+            setCurrentBook={setReaderBook}
+            currentChapter={readerChapter}
+            setCurrentChapter={setReaderChapter}
+            scrollContainerRef={mainRef}
+            initialScroll={bibleScrollY}
+            targetVerse={targetVerse}
+            onScrollComplete={() => setTargetVerse(null)}
+          />
+        )}
       </main>
 
       {/* FADE INFERIOR */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-20" />
+
+      {/* BOTTOM NAVIGATION (Only show on main views, hide on Admin) */}
+      {view !== "admin" && (
+        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center p-2 pb-4 z-40 safe-area-pb">
+          <button
+            onClick={() => {
+              if (view === "bible") setView("home");
+              // If already in details/results, stay there or go home?
+              // Let's make it go Home to reset, or just setView('home') implies Atlas root.
+              if (view === "home" && searchTerm.length > 0) return; // already there
+              if (view !== "home" && view !== "results" && view !== "details")
+                setView("home");
+            }}
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 w-20 ${
+              view !== "bible"
+                ? "text-amber-600 bg-amber-50"
+                : "text-slate-400 hover:bg-slate-50"
+            }`}
+          >
+            <LayoutGrid size={24} />
+            <span className="text-[10px] font-bold uppercase tracking-wide">
+              Atlas
+            </span>
+          </button>
+
+          <div className="w-px h-8 bg-slate-100" />
+
+          <button
+            onClick={() => setView("bible")}
+            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 w-20 ${
+              view === "bible"
+                ? "text-amber-600 bg-amber-50"
+                : "text-slate-400 hover:bg-slate-50"
+            }`}
+          >
+            <BookOpen size={24} />
+            <span className="text-[10px] font-bold uppercase tracking-wide">
+              Bíblia
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

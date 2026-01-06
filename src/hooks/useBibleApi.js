@@ -161,5 +161,45 @@ export const useBibleApi = () => {
     }
   }, []);
 
-  return { searchVerses, getVerseText, loading, error };
+  /**
+   * Gets all verses of a specific chapter.
+   * @param {string} bookName - Name of the book (e.g., "Gênesis").
+   * @param {number} chapter - Chapter number.
+   * @returns {Promise<Array>} - Array of verse objects.
+   */
+  const getChapter = useCallback(async (bookName, chapter) => {
+    if (!bookName || !chapter) return [];
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Find abbrev
+      const abbrev = NAME_TO_ABBREV[bookName.toLowerCase()];
+      if (!abbrev) throw new Error(`Livro não encontrado: ${bookName}`);
+
+      const bookData = BIBLE_DATA.find((b) => b.abbrev === abbrev);
+      if (!bookData) throw new Error(`Dados não encontrados para: ${abbrev}`);
+
+      const chapterData = bookData.chapters[chapter - 1];
+      if (!chapterData) throw new Error(`Capítulo ${chapter} não encontrado.`);
+
+      // Map to standard format
+      const verses = chapterData.map((text, index) => ({
+        book: { name: BOOK_NAMES[abbrev] || bookName, id: abbrev },
+        chapter: chapter,
+        number: index + 1,
+        text: text,
+      }));
+
+      return verses;
+    } catch (err) {
+      console.error("Erro ao buscar capítulo:", err);
+      setError("Erro ao carregar capítulo.");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { searchVerses, getVerseText, getChapter, loading, error };
 };
