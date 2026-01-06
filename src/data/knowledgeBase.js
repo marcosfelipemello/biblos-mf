@@ -1,5 +1,43 @@
 export const KNOWLEDGE_BASE = {
   entities: [
+    // --- SAMPLE PLACES & ARTIFACTS ---
+    {
+      id: "place_jerusalem",
+      name: "Jerusalém",
+      type: "place",
+      category: "Cidade Santa",
+      origin_ref: "Josué 10:1",
+      description:
+        "Cidade central da fé bíblica, local do Templo e da paixão de Cristo.",
+      related: ["Davi", "Salomão", "Jesus"],
+    },
+    {
+      id: "art_ark",
+      name: "Arca da Aliança",
+      type: "artifact",
+      category: "Objeto Sagrado",
+      origin_ref: "Êxodo 25:10",
+      description: "Caixa revestida de ouro que guardava as tábuas da Lei.",
+      related: ["Moisés", "Davi"],
+    },
+    {
+      id: "sym_lion",
+      name: "Leão da Meta de Judá",
+      type: "symbol",
+      category: "Título Messiânico",
+      origin_ref: "Apocalipse 5:5",
+      description: "Símbolo de Cristo como Rei vitorioso da tribo de Judá.",
+      related: ["Jesus", "Judá"],
+    },
+    {
+      id: "par_prodigal",
+      name: "Filho Pródigo",
+      type: "parable",
+      category: "Parábola",
+      origin_ref: "Lucas 15:11",
+      description: "História sobre o amor perdoador do Pai.",
+      related: ["Jesus"],
+    },
     // --- FIGURAS CENTRAIS ---
     {
       id: "p0",

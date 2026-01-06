@@ -5,7 +5,8 @@ import ErrorDisplay from "./ErrorDisplay";
 import AdminPanel from "./AdminPanel";
 import VerseDisplay from "./VerseDisplay";
 import ExitConfirmation from "./ExitConfirmation";
-import BibleReader from "./BibleReader"; // Import added
+import BibleReader from "./BibleReader";
+import Atlas from "./Atlas"; // Import added
 import { useBibleApi } from "../hooks/useBibleApi";
 import {
   Search,
@@ -29,10 +30,12 @@ export default function Dashboard() {
   const { entities, status, fetchVerses, errorMsg } = useBiblosData();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState(null);
   const [view, setView] = useState("home"); // home, results, details, admin
   const [selectedEntity, setSelectedEntity] = useState(null);
-  const [verses, setVerses] = useState([]);
-  const [loadingVerses, setLoadingVerses] = useState(false);
+
+  // Removed internal Atlas states (verses, loadingVerses, activeTab) as they are now in Atlas.jsx
+
   const [previousView, setPreviousView] = useState(null); // Track where we came from
 
   // READER STATE (Persisted in LocalStorage)
@@ -48,7 +51,6 @@ export default function Dashboard() {
   // New state for targeted verse navigation
   const [targetVerse, setTargetVerse] = useState(null);
 
-  const [activeTab, setActiveTab] = useState("origin"); // origin, mentions
   const [showExitConfirm, setShowExitConfirm] = useState(false); // State for exit modal
   // Dual Lenis Refs
   const atlasRef = React.useRef(null);
@@ -106,12 +108,12 @@ export default function Dashboard() {
 
   const selectEntity = async (entity) => {
     // Scroll saving is now native because we don't unmount!
-    // Just switch view.
     setPreviousView(view);
     setSelectedEntity(entity);
     setView("details");
-    setActiveTab("origin");
-    setVerses([]);
+    // activeTab/verses reset handled by Atlas internally when selectedEntity changes?
+    // Actually Atlas uses selectedEntity change to reset? Or we relying on mount?
+    // Atlas is always mounted. We'll handle reset in Atlas via useEffect or key.
   };
 
   // Persist Reader State
@@ -180,21 +182,50 @@ export default function Dashboard() {
   const isAdmin = user?.email === "marcosfelipemellosantana@gmail.com";
 
   const results = useMemo(() => {
-    if (searchTerm.length < 2) return [];
-    const term = searchTerm.toLowerCase();
-    return entities.filter(
-      (e) =>
-        e.name?.toLowerCase().includes(term) ||
-        e.category?.toLowerCase().includes(term)
-    );
-  }, [searchTerm, entities]);
+    // 1. Search Logic
+    if (searchTerm.length >= 2) {
+      const term = searchTerm.toLowerCase();
+      return entities.filter(
+        (e) =>
+          e.name?.toLowerCase().includes(term) ||
+          e.category?.toLowerCase().includes(term)
+      );
+    }
+    // 2. Category Logic
+    if (categoryFilter) {
+      let filtered = [];
+      if (categoryFilter === "person")
+        filtered = entities.filter((e) => e.type === "person");
+      else if (categoryFilter === "place")
+        filtered = entities.filter((e) => e.type === "place");
+      else if (categoryFilter === "artifact")
+        filtered = entities.filter((e) => e.type === "artifact");
+      else if (categoryFilter === "abstract")
+        filtered = entities.filter(
+          (e) => e.type === "abstract" || e.type === "symbol"
+        );
+      else if (categoryFilter === "parable")
+        filtered = entities.filter((e) => e.type === "parable");
+
+      return filtered.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return [];
+  }, [searchTerm, categoryFilter, entities]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-    if (term.length > 0 && view !== "details" && view !== "admin")
-      setView("results");
-    if (term.length === 0 && view !== "details" && view !== "admin")
+    if (term.length > 0) {
+      setCategoryFilter(null);
+      if (view !== "details" && view !== "admin") setView("results");
+    }
+    if (
+      term.length === 0 &&
+      !categoryFilter &&
+      view !== "details" &&
+      view !== "admin"
+    ) {
       setView("home");
+    }
   };
 
   // Import searchVerses
@@ -213,46 +244,15 @@ export default function Dashboard() {
 
       setTimeout(() => {
         setSelectedEntity(null);
-        setVerses([]);
-        setActiveTab("origin");
-        setPreviousView(null); // Reset
+        setPreviousView(null);
       }, 300);
     } else if (view === "admin") {
       setView("home");
     } else {
       setView("home");
       setSearchTerm("");
+      setCategoryFilter(null);
     }
-  };
-
-  const getTypeStyles = (type) => {
-    const styles = {
-      person: {
-        icon: User,
-        color: "text-blue-600",
-        bg: "bg-blue-50",
-        gradient: "from-blue-50 to-white",
-      },
-      object: {
-        icon: LayoutGrid,
-        color: "text-amber-600",
-        bg: "bg-amber-50",
-        gradient: "from-amber-50 to-white",
-      },
-      abstract: {
-        icon: Sparkles,
-        color: "text-purple-600",
-        bg: "bg-purple-50",
-        gradient: "from-purple-50 to-white",
-      },
-      default: {
-        icon: Tag,
-        color: "text-slate-600",
-        bg: "bg-slate-50",
-        gradient: "from-slate-50 to-white",
-      },
-    };
-    return styles[type] || styles.default;
   };
 
   if (view === "admin") {
@@ -310,6 +310,9 @@ export default function Dashboard() {
           >
             Biblos
             <span className="text-amber-500 text-3xl animate-pulse">.</span>
+            <div className="ml-4">
+              <Logo size={80} />
+            </div>
           </h1>
 
           <div className="w-10 flex justify-end">
@@ -367,224 +370,31 @@ export default function Dashboard() {
         }`}
       >
         <div className="pb-20">
-          {/* Internal wrapper for Lenis content safety */}
-
-          {view === "home" && status !== "error" && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-enter-view">
-              <div className="mb-6 hover:scale-105 transition-transform duration-500 ease-out animate-[bounce_3s_infinite]">
-                <Logo size={180} />
-              </div>
-              <h2 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">
-                Concordância Inteligente
-              </h2>
-              <p className="text-slate-500 max-w-[260px] leading-relaxed text-sm">
-                Bem-vindo, {user?.email?.split("@")[0]}.<br />
-                Sua bíblia de estudo pessoal.
-              </p>
-              {status === "connected" && entities.length === 0 && (
-                <p className="mt-6 text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-100 max-w-xs">
-                  Banco conectado mas vazio.
-                  <br />
-                  Adicione dados no Firestore.
-                </p>
-              )}
-            </div>
-          )}
-
-          {view === "results" && status !== "error" && (
-            <div className="space-y-3 pt-2">
-              {/* Same Results Code ... */}
-              {results.map((item, index) => {
-                const style = getTypeStyles(item.type);
-                const Icon = style.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={async () => {
-                      let finalItem = { ...item };
-                      if (!finalItem.origin_ref) {
-                        try {
-                          const term = finalItem.search_term || finalItem.name;
-                          const found = await searchVerses(term);
-                          if (found && found.length > 0) {
-                            const first = found[0];
-                            finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
-                          }
-                        } catch (e) {
-                          console.warn("Auto-detect origin failed", e);
-                        }
-                      }
-                      selectEntity(finalItem);
-                    }}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
-                    >
-                      <Icon size={20} className={style.color} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
-                        {item.name}
-                      </h3>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
-                        {item.category}
-                      </span>
-                    </div>
-                    <ChevronRight
-                      size={20}
-                      className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
-                    />
-                  </button>
-                );
-              })}
-              {/* DYNAMIC SEARCH OPTION */}
-              {searchTerm.length > 2 && (
-                <div
-                  className={`transition-all duration-500 ease-out mt-6 pt-6 border-t border-slate-100`}
-                >
-                  <button
-                    onClick={async () => {
-                      // ... Logic copied from before ...
-                      const term = searchTerm;
-                      try {
-                        const dynamicEntity = {
-                          id: `search-${Date.now()}`,
-                          name: term,
-                          description: "Resultado da busca na Bíblia Completa",
-                          type: "place",
-                          origin_ref: null,
-                          search_term: term,
-                        };
-                        const found = await searchVerses(term);
-                        if (found && found.length > 0) {
-                          const first = found[0];
-                          dynamicEntity.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
-                        } else {
-                          dynamicEntity.description =
-                            "Termo não encontrado na Bíblia";
-                          dynamicEntity.type = "other";
-                        }
-                        selectEntity(dynamicEntity);
-                      } catch (e) {
-                        console.warn("Erro ao buscar origem dinâmica", e);
-                      }
-                    }}
-                    className="w-full p-5 rounded-2xl bg-amber-500 text-white shadow-xl flex items-center"
-                  >
-                    <div className="mr-4">
-                      <BookOpen size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg">Pesquisar na Bíblia</h3>
-                    </div>
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {view === "details" && selectedEntity && (
-            <div className="animate-enter-view">
-              {/* HERO CARD */}
-              <div className="relative overflow-hidden bg-white rounded-[2rem] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8 group">
-                <h1 className="text-3xl font-serif font-bold text-slate-900 mb-4">
-                  {selectedEntity.name}
-                </h1>
-                <p className="text-slate-600 text-sm leading-7 font-medium opacity-90">
-                  {selectedEntity.description}
-                </p>
-              </div>
-              {/* TABS */}
-              <div className="flex gap-4 mb-6 border-b border-slate-100 pb-2">
-                <button
-                  className={`pb-2 text-sm font-bold uppercase ${
-                    activeTab === "origin"
-                      ? "text-amber-500 border-b-2 border-amber-500"
-                      : "text-slate-400"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("origin");
-                    setVerses([]);
-                  }}
-                >
-                  História de Origem
-                </button>
-                <button
-                  className={`pb-2 text-sm font-bold uppercase ${
-                    activeTab === "mentions"
-                      ? "text-amber-500 border-b-2 border-amber-500"
-                      : "text-slate-400"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("mentions");
-                    setLoadingVerses(true);
-                    const term =
-                      selectedEntity.search_term ||
-                      selectedEntity.name.split("(")[0].trim();
-                    searchVerses(term).then((res) => {
-                      setVerses(res);
-                      setLoadingVerses(false);
-                    });
-                  }}
-                >
-                  Todas as Menções
-                </button>
-              </div>
-
-              {activeTab === "origin" && (
-                <div className="space-y-4">
-                  {selectedEntity.origin_ref ? (
-                    <button
-                      onClick={() =>
-                        goToBibleReference(selectedEntity.origin_ref)
-                      }
-                      className="w-full text-left bg-amber-50 p-6 rounded-2xl border border-amber-100"
-                    >
-                      <div className="flex items-center gap-2 mb-3 text-amber-800">
-                        <BookOpen size={20} />
-                        <h3 className="font-bold text-lg">Ir para Leitura</h3>
-                      </div>
-                      <VerseDisplay reference={selectedEntity.origin_ref} />
-                    </button>
-                  ) : (
-                    <p className="text-slate-400 italic">
-                      Sem origem cadastrada.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "mentions" && (
-                <div>
-                  {loadingVerses ? (
-                    <p>Carregando...</p>
-                  ) : (
-                    verses.map((verse) => (
-                      <button
-                        key={verse.id}
-                        onClick={() =>
-                          goToBibleReference(
-                            `${verse.book.name} ${verse.chapter}:${verse.number}`
-                          )
-                        }
-                        className="w-full text-left bg-white p-6 rounded-2xl border border-slate-100 mb-4"
-                      >
-                        <p className="text-slate-700 font-serif mb-2">
-                          {verse.text}
-                        </p>
-                        <span className="text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-full">
-                          {verse.book.name} {verse.chapter}:{verse.number}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          <Atlas
+            view={view}
+            setView={setView}
+            entities={entities}
+            results={results}
+            // Atlas handles the filtering by calling setCategoryFilter
+            setResults={(filtered) => {
+              // This prop name in Atlas is 'setResults' but logically it's triggering the filter.
+              // wait, in Atlas.jsx I called setResults(filtered).
+              // But Dashboard owns results logic via useMemo.
+              // Atlas should accept setCategoryFilter and setSearchTerm.
+              // I need to update Atlas.jsx to use setCategoryFilter instead of setResults.
+              // FIX REQUIREMENT: Updating Atlas.jsx concurrently or updating this prop signature.
+              // Assuming I will fix Atlas.jsx next, I will pass setCategoryFilter here.
+            }}
+            setCategoryFilter={setCategoryFilter}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedEntity={selectedEntity}
+            selectEntity={selectEntity}
+            user={user}
+            status={status}
+            searchVerses={searchVerses}
+            goToBibleReference={goToBibleReference}
+          />
         </div>
       </main>
 
