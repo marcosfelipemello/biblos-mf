@@ -22,6 +22,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Logo from "./Logo";
+import Lenis from "lenis"; // Import Lenis
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -47,7 +48,71 @@ export default function Dashboard() {
   // New state for targeted verse navigation
   const [targetVerse, setTargetVerse] = useState(null);
 
-  const mainRef = React.useRef(null);
+  const [activeTab, setActiveTab] = useState("origin"); // origin, mentions
+  const [showExitConfirm, setShowExitConfirm] = useState(false); // State for exit modal
+  // Dual Lenis Refs
+  const atlasRef = React.useRef(null);
+  const bibleRef = React.useRef(null);
+
+  const [atlasLenis, setAtlasLenis] = useState(null);
+  const [bibleLenis, setBibleLenis] = useState(null);
+
+  // Initialize Lenis for Atlas
+  useEffect(() => {
+    if (!atlasRef.current) return;
+    const lenisInstance = new Lenis({
+      wrapper: atlasRef.current,
+      content: atlasRef.current.firstElementChild,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+    setAtlasLenis(lenisInstance);
+    return () => lenisInstance.destroy(); // Cleanup
+  }, []); // Run once
+
+  // Initialize Lenis for Bible
+  useEffect(() => {
+    if (!bibleRef.current) return;
+    const lenisInstance = new Lenis({
+      wrapper: bibleRef.current,
+      content: bibleRef.current.firstElementChild,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+    setBibleLenis(lenisInstance);
+    return () => lenisInstance.destroy(); // Cleanup
+  }, []); // Run once
+
+  // Unified RAF
+  useEffect(() => {
+    function raf(time) {
+      if (atlasLenis) atlasLenis.raf(time);
+      if (bibleLenis) bibleLenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    const frameId = requestAnimationFrame(raf);
+    return () => cancelAnimationFrame(frameId);
+  }, [atlasLenis, bibleLenis]);
+
+  const selectEntity = async (entity) => {
+    // Scroll saving is now native because we don't unmount!
+    // Just switch view.
+    setPreviousView(view);
+    setSelectedEntity(entity);
+    setView("details");
+    setActiveTab("origin");
+    setVerses([]);
+  };
 
   // Persist Reader State
   useEffect(() => {
@@ -60,33 +125,17 @@ export default function Dashboard() {
     localStorage.setItem("biblo_scrollY", bibleScrollY.toString());
   }, [bibleScrollY]);
 
-  const [activeTab, setActiveTab] = useState("origin"); // origin, mentions
-  const [showExitConfirm, setShowExitConfirm] = useState(false); // State for exit modal
-
   // EXIT CONFIRMATION LOGIC (Back Button Trap)
   useEffect(() => {
     // 1. Push a state on mount so we have something to pop
     window.history.pushState(null, document.title, window.location.href);
 
     const handlePopState = (event) => {
-      // If we are showing the modal, close it or exit?
-      // Simplified: If user hits back, we show modal.
-
-      // If we are NOT at home (e.g. details/results), let the internal logic handle it?
-      // Actually, standard PWA behavior: System Back should trigger internal Back.
-      // But implementing fully synced history is complex.
-      // Let's focus on the user's request: "Prevent accidental exit".
-      // This usually implies preventing exit from the ROOT (Home).
-
       if (view === "home" && !showExitConfirm) {
         // Prevent default exit behavior
-        // We push state AGAIN to stay on the page effectively
         window.history.pushState(null, document.title, window.location.href);
         setShowExitConfirm(true);
       } else if (view !== "home") {
-        // If deep in app, we probably want to just go back internally.
-        // The popstate event implies the URL changed (back), but SPA didn't reload.
-        // Ideally we sync this.
         window.history.pushState(null, document.title, window.location.href); // Trap it
         goBack(); // Use our internal router
       }
@@ -97,19 +146,17 @@ export default function Dashboard() {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [view, showExitConfirm]); // Dependencies ensure we capture current view state
+  }, [view, showExitConfirm]);
 
   // Function to handle "Go To Reference"
   const goToBibleReference = (refString) => {
     if (!refString) return;
     try {
-      // Expected format: "1 Reis 12:1" or "Mateus 5:1"
-      // Split by last space to separate Book from Chapter:Verse
       const lastSpaceIndex = refString.lastIndexOf(" ");
       if (lastSpaceIndex === -1) return;
 
-      const bookPart = refString.substring(0, lastSpaceIndex).trim(); // "1 Reis"
-      const numberPart = refString.substring(lastSpaceIndex + 1).trim(); // "12:1"
+      const bookPart = refString.substring(0, lastSpaceIndex).trim();
+      const numberPart = refString.substring(lastSpaceIndex + 1).trim();
 
       const [chapterStr, verseStr] = numberPart.split(":");
       const chapter = parseInt(chapterStr);
@@ -152,20 +199,6 @@ export default function Dashboard() {
 
   // Import searchVerses
   const { searchVerses, loading: apiLoading } = useBibleApi();
-
-  const selectEntity = async (entity) => {
-    // Save scroll position if we are leaving bible view
-    if (view === "bible" && mainRef.current) {
-      setBibleScrollY(mainRef.current.scrollTop);
-    }
-
-    setPreviousView(view); // Save current view key (e.g. 'bible')
-    setSelectedEntity(entity);
-    setView("details");
-    setActiveTab("origin");
-    // Do NOT clear search term, so we can go back to results
-    setVerses([]);
-  };
 
   const goBack = () => {
     if (view === "details") {
@@ -226,6 +259,9 @@ export default function Dashboard() {
     return <AdminPanel onBack={goBack} />;
   }
 
+  // Determine which view container is visible
+  const isBibleView = view === "bible";
+
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-white font-sans text-slate-900 shadow-2xl relative overflow-hidden transform-gpu">
       {/* Background Glow */}
@@ -236,22 +272,14 @@ export default function Dashboard() {
         <ExitConfirmation
           onCancel={() => setShowExitConfirm(false)}
           onConfirm={() => {
-            // Force exit
-            // We pushed state repeatedly, so standard history.back() might just pop one of our dummy states.
-            // window.close() is blocked.
-            // Best bet for PWA/Web: Navigate to about:blank or similar, or close tab if possible.
-            // OR: We intentionally let the *next* back action succeed?
-            // Actually, simply calling history.go(-2) might work.
-            // For now, let's try history.back() multiple times or window.close.
-            setShowExitConfirm(false); // Hide modal
-            window.history.go(-3); // Try to go back far enough to exit our trap
-            // Fallback
+            setShowExitConfirm(false);
+            window.history.go(-3);
             window.close();
           }}
         />
       )}
 
-      {/* HEADER */}
+      {/* HEADER - Shared but adapts */}
       <header className="relative z-20 px-4 pt-6 pb-2 backdrop-blur-sm bg-white/50 sticky top-0 transition-colors duration-500">
         <div className="flex items-center justify-between mb-4">
           <div className="w-10 h-10 flex items-center justify-center">
@@ -297,10 +325,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH BAR - Only relevant for Atlas View context visually, but keep in header */}
         <div
           className={`transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) transform-gpu ${
-            view === "details"
+            view === "details" || view === "bible"
               ? "opacity-0 -translate-y-8 pointer-events-none absolute"
               : "opacity-100 translate-y-0 relative"
           }`}
@@ -331,333 +359,210 @@ export default function Dashboard() {
       {/* ERROR DISPLAY */}
       {status === "error" && <ErrorDisplay message={errorMsg} />}
 
-      {/* MAIN CONTENT */}
+      {/* --- CONTAINER 1: ATLAS (Home, Results, Details) --- */}
       <main
-        ref={mainRef}
-        className="flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 scroll-smooth"
+        ref={atlasRef}
+        className={`flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 ${
+          isBibleView ? "hidden" : "block"
+        }`}
       >
-        {view === "home" && status !== "error" && (
-          <div className="flex flex-col items-center justify-center h-full text-center pb-20 animate-enter-view">
-            <div className="mb-6 hover:scale-105 transition-transform duration-500 ease-out animate-[bounce_3s_infinite]">
-              <Logo size={180} />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">
-              Concordância Inteligente
-            </h2>
-            <p className="text-slate-500 max-w-[260px] leading-relaxed text-sm">
-              Bem-vindo, {user?.email?.split("@")[0]}.<br />
-              Sua bíblia de estudo pessoal.
-            </p>
-            {status === "connected" && entities.length === 0 && (
-              <p className="mt-6 text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-100 max-w-xs">
-                Banco conectado mas vazio.
-                <br />
-                Adicione dados no Firestore.
-              </p>
-            )}
-          </div>
-        )}
+        <div className="pb-20">
+          {/* Internal wrapper for Lenis content safety */}
 
-        {/* VIEW: RESULTS */}
-        {view === "results" && status !== "error" && (
-          <div className="space-y-3 pt-2">
-            {/* KB RESULTS */}
-            {results.map((item, index) => {
-              const style = getTypeStyles(item.type);
-              const Icon = style.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={async () => {
-                    let finalItem = { ...item };
-                    if (!finalItem.origin_ref) {
+          {view === "home" && status !== "error" && (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-enter-view">
+              <div className="mb-6 hover:scale-105 transition-transform duration-500 ease-out animate-[bounce_3s_infinite]">
+                <Logo size={180} />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">
+                Concordância Inteligente
+              </h2>
+              <p className="text-slate-500 max-w-[260px] leading-relaxed text-sm">
+                Bem-vindo, {user?.email?.split("@")[0]}.<br />
+                Sua bíblia de estudo pessoal.
+              </p>
+              {status === "connected" && entities.length === 0 && (
+                <p className="mt-6 text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-100 max-w-xs">
+                  Banco conectado mas vazio.
+                  <br />
+                  Adicione dados no Firestore.
+                </p>
+              )}
+            </div>
+          )}
+
+          {view === "results" && status !== "error" && (
+            <div className="space-y-3 pt-2">
+              {/* Same Results Code ... */}
+              {results.map((item, index) => {
+                const style = getTypeStyles(item.type);
+                const Icon = style.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={async () => {
+                      let finalItem = { ...item };
+                      if (!finalItem.origin_ref) {
+                        try {
+                          const term = finalItem.search_term || finalItem.name;
+                          const found = await searchVerses(term);
+                          if (found && found.length > 0) {
+                            const first = found[0];
+                            finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                          }
+                        } catch (e) {
+                          console.warn("Auto-detect origin failed", e);
+                        }
+                      }
+                      selectEntity(finalItem);
+                    }}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
+                    >
+                      <Icon size={20} className={style.color} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
+                        {item.name}
+                      </h3>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
+                        {item.category}
+                      </span>
+                    </div>
+                    <ChevronRight
+                      size={20}
+                      className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
+                    />
+                  </button>
+                );
+              })}
+              {/* DYNAMIC SEARCH OPTION */}
+              {searchTerm.length > 2 && (
+                <div
+                  className={`transition-all duration-500 ease-out mt-6 pt-6 border-t border-slate-100`}
+                >
+                  <button
+                    onClick={async () => {
+                      // ... Logic copied from before ...
+                      const term = searchTerm;
                       try {
-                        const term = finalItem.search_term || finalItem.name;
+                        const dynamicEntity = {
+                          id: `search-${Date.now()}`,
+                          name: term,
+                          description: "Resultado da busca na Bíblia Completa",
+                          type: "place",
+                          origin_ref: null,
+                          search_term: term,
+                        };
                         const found = await searchVerses(term);
                         if (found && found.length > 0) {
                           const first = found[0];
-                          finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                          dynamicEntity.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                        } else {
+                          dynamicEntity.description =
+                            "Termo não encontrado na Bíblia";
+                          dynamicEntity.type = "other";
                         }
+                        selectEntity(dynamicEntity);
                       } catch (e) {
-                        console.warn("Auto-detect origin failed", e);
+                        console.warn("Erro ao buscar origem dinâmica", e);
                       }
-                    }
-                    selectEntity(finalItem);
-                  }}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
-                >
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
+                    }}
+                    className="w-full p-5 rounded-2xl bg-amber-500 text-white shadow-xl flex items-center"
                   >
-                    <Icon size={20} className={style.color} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
-                      {item.name}
-                    </h3>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
-                      {item.category}
-                    </span>
-                  </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
-                  />
-                </button>
-              );
-            })}
-
-            {/* DYNAMIC SEARCH OPTION */}
-            {searchTerm.length > 2 && (
-              <div
-                className={`transition-all duration-500 ease-out ${
-                  results.length === 0
-                    ? "mt-12 animate-enter-view"
-                    : "mt-6 pt-6 border-t border-slate-100"
-                }`}
-              >
-                {results.length === 0 && (
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4">
-                      <Search size={32} />
+                    <div className="mr-4">
+                      <BookOpen size={24} />
                     </div>
-                    <p className="text-slate-600 font-medium text-lg">
-                      Não encontrado no Atlas.
-                    </p>
-                    <p className="text-slate-400 text-sm mt-1 max-w-[200px] mx-auto leading-relaxed">
-                      Mas não se preocupe, você pode buscar em todo o texto
-                      sagrado.
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  onClick={async () => {
-                    const term = searchTerm;
-                    try {
-                      // Trigger loading visually if needed, but primarily select the dynamic entity
-                      const dynamicEntity = {
-                        id: `search-${Date.now()}`,
-                        name: term,
-                        description: "Resultado da busca na Bíblia Completa",
-                        type: "place", // Use 'place' to get a nice icon, or specific type
-                        origin_ref: null, // Will be fetched in details view if needed, or we just rely on "Mentions" tab
-                        search_term: term,
-                      };
-
-                      // Pre-fetch if we want origin populated (optional, keep existing logic logic inside main flow if preferred)
-                      // Existing logic did: fetch -> if found -> populate origin -> select.
-                      // Let's keep it consistent with previous logic to ensure "Origin" tab isn't empty if possible.
-
-                      const found = await searchVerses(term);
-                      if (found && found.length > 0) {
-                        const first = found[0];
-                        dynamicEntity.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
-                      } else {
-                        dynamicEntity.description =
-                          "Termo não encontrado na Bíblia";
-                        dynamicEntity.type = "other";
-                      }
-
-                      selectEntity(dynamicEntity);
-                    } catch (e) {
-                      console.warn("Erro ao buscar origem dinâmica", e);
-                    }
-                  }}
-                  className={`w-full p-5 rounded-2xl transition-all duration-300 flex items-center group text-left relative overflow-hidden ${
-                    results.length === 0
-                      ? "bg-amber-500 text-white shadow-xl shadow-amber-500/30 hover:bg-amber-600 hover:scale-[1.02] active:scale-[0.98]"
-                      : "bg-slate-50 border border-slate-200 hover:bg-white hover:border-amber-200 hover:shadow-md"
-                  }`}
-                >
-                  {/* Decorative background for primary button */}
-                  {results.length === 0 && (
-                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
-                  )}
-
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 transition-colors ${
-                      results.length === 0
-                        ? "bg-white/20 text-white"
-                        : "bg-white text-slate-400 border border-slate-100 group-hover:text-amber-500"
-                    }`}
-                  >
-                    <BookOpen size={24} />
-                  </div>
-
-                  <div className="flex-1">
-                    <h3
-                      className={`font-bold text-lg ${
-                        results.length === 0
-                          ? "text-white"
-                          : "text-slate-700 group-hover:text-amber-700"
-                      }`}
-                    >
-                      Pesquisar na Bíblia
-                    </h3>
-                    <p
-                      className={`text-xs ${
-                        results.length === 0
-                          ? "text-amber-100"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      Buscar "{searchTerm}" nas escrituras
-                    </p>
-                  </div>
-
-                  <div
-                    className={`p-2 rounded-full ${
-                      results.length === 0
-                        ? "bg-white/20 text-white"
-                        : "text-slate-300 group-hover:text-amber-500"
-                    }`}
-                  >
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg">Pesquisar na Bíblia</h3>
+                    </div>
                     <ChevronRight size={20} />
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* VIEW: DETAILS */}
-        {view === "details" && selectedEntity && (
-          <div className="animate-enter-view pb-10">
-            {/* HERO CARD */}
-            <div className="relative overflow-hidden bg-white rounded-[2rem] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8 group transform-gpu transition-transform hover:scale-[1.01] duration-500">
-              <div
-                className={`absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br ${
-                  getTypeStyles(selectedEntity.type).gradient
-                } opacity-50 blur-2xl group-hover:opacity-70 transition-opacity duration-700`}
-              />
-
-              <div className="relative z-10">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 border shadow-sm backdrop-blur-md bg-white/80 ${
-                    getTypeStyles(selectedEntity.type).color
-                  } ${getTypeStyles(selectedEntity.type).border}`}
-                >
-                  {React.createElement(
-                    getTypeStyles(selectedEntity.type).icon,
-                    { size: 12 }
-                  )}
-                  {selectedEntity.category}
-                </span>
-
-                <h1 className="text-3xl font-serif font-bold text-slate-900 mb-4 leading-tight tracking-tight">
+          {view === "details" && selectedEntity && (
+            <div className="animate-enter-view">
+              {/* HERO CARD */}
+              <div className="relative overflow-hidden bg-white rounded-[2rem] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8 group">
+                <h1 className="text-3xl font-serif font-bold text-slate-900 mb-4">
                   {selectedEntity.name}
                 </h1>
-
                 <p className="text-slate-600 text-sm leading-7 font-medium opacity-90">
                   {selectedEntity.description}
                 </p>
               </div>
-            </div>
-
-            {/* TABS DE CONTEÚDO */}
-            <div className="flex gap-4 mb-6 border-b border-slate-100 pb-2">
-              <button
-                className={`pb-2 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  activeTab === "origin"
-                    ? "text-amber-500 border-b-2 border-amber-500"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
-                onClick={() => {
-                  setLoadingVerses(false);
-                  setVerses([]); // Limpa para mostrar origem
-                  setActiveTab("origin");
-                }}
-              >
-                História de Origem
-              </button>
-              <button
-                className={`pb-2 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  activeTab === "mentions"
-                    ? "text-amber-500 border-b-2 border-amber-500"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
-                onClick={() => {
-                  setLoadingVerses(true);
-                  setActiveTab("mentions"); // Switch tab immediately
-
-                  const term =
-                    selectedEntity.search_term ||
-                    selectedEntity.name.split("(")[0].trim();
-                  searchVerses(term).then((res) => {
-                    setVerses(res);
-                    setLoadingVerses(false);
-                  });
-                }}
-              >
-                Todas as Menções
-              </button>
-            </div>
-
-            {/* TAB: HISTÓRIA DE ORIGEM */}
-            {activeTab === "origin" && (
-              <div className="space-y-4 animate-enter-view">
-                {selectedEntity.origin_ref ? (
-                  <button
-                    onClick={() =>
-                      goToBibleReference(selectedEntity.origin_ref)
-                    }
-                    className="w-full text-left bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden hover:bg-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-center gap-2 mb-3 text-amber-800">
-                      <BookOpen size={20} />
-                      <h3 className="font-bold text-lg group-hover:text-amber-900 transition-colors">
-                        Primeira Aparição / Origem
-                      </h3>
-                      <ExternalLink
-                        size={16}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-600"
-                      />
-                    </div>
-                    <div className="relative z-10">
-                      <VerseDisplay reference={selectedEntity.origin_ref} />
-                      <div className="mt-2 text-xs font-bold text-amber-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded inline-block group-hover:bg-white transition-colors">
-                        {selectedEntity.origin_ref}
-                      </div>
-                    </div>
-                    {/* Decorative Icon */}
-                    <div className="absolute -bottom-4 -right-4 text-amber-100 transform rotate-12 group-hover:rotate-6 transition-transform">
-                      <LayoutGrid size={100} />
-                    </div>
-                  </button>
-                ) : (
-                  <p className="text-slate-400 italic">
-                    História de origem não cadastrada.
-                  </p>
-                )}
+              {/* TABS */}
+              <div className="flex gap-4 mb-6 border-b border-slate-100 pb-2">
+                <button
+                  className={`pb-2 text-sm font-bold uppercase ${
+                    activeTab === "origin"
+                      ? "text-amber-500 border-b-2 border-amber-500"
+                      : "text-slate-400"
+                  }`}
+                  onClick={() => {
+                    setActiveTab("origin");
+                    setVerses([]);
+                  }}
+                >
+                  História de Origem
+                </button>
+                <button
+                  className={`pb-2 text-sm font-bold uppercase ${
+                    activeTab === "mentions"
+                      ? "text-amber-500 border-b-2 border-amber-500"
+                      : "text-slate-400"
+                  }`}
+                  onClick={() => {
+                    setActiveTab("mentions");
+                    setLoadingVerses(true);
+                    const term =
+                      selectedEntity.search_term ||
+                      selectedEntity.name.split("(")[0].trim();
+                    searchVerses(term).then((res) => {
+                      setVerses(res);
+                      setLoadingVerses(false);
+                    });
+                  }}
+                >
+                  Todas as Menções
+                </button>
               </div>
-            )}
 
-            {/* TAB: TODAS AS MENÇÕES */}
-            {activeTab === "mentions" && (
-              <div>
-                <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 px-1 text-lg">
-                  <Bookmark
-                    size={20}
-                    className="text-amber-500 drop-shadow-sm"
-                  />
-                  Ocorrências na Bíblia ({verses.length})
-                </h3>
+              {activeTab === "origin" && (
+                <div className="space-y-4">
+                  {selectedEntity.origin_ref ? (
+                    <button
+                      onClick={() =>
+                        goToBibleReference(selectedEntity.origin_ref)
+                      }
+                      className="w-full text-left bg-amber-50 p-6 rounded-2xl border border-amber-100"
+                    >
+                      <div className="flex items-center gap-2 mb-3 text-amber-800">
+                        <BookOpen size={20} />
+                        <h3 className="font-bold text-lg">Ir para Leitura</h3>
+                      </div>
+                      <VerseDisplay reference={selectedEntity.origin_ref} />
+                    </button>
+                  ) : (
+                    <p className="text-slate-400 italic">
+                      Sem origem cadastrada.
+                    </p>
+                  )}
+                </div>
+              )}
 
-                {loadingVerses ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-28 bg-slate-100/50 rounded-2xl animate-pulse"
-                        style={{ animationDelay: `${i * 150}ms` }}
-                      />
-                    ))}
-                  </div>
-                ) : verses.length > 0 ? (
-                  <div className="space-y-4">
-                    {verses.map((verse, idx) => (
+              {activeTab === "mentions" && (
+                <div>
+                  {loadingVerses ? (
+                    <p>Carregando...</p>
+                  ) : (
+                    verses.map((verse) => (
                       <button
                         key={verse.id}
                         onClick={() =>
@@ -665,59 +570,47 @@ export default function Dashboard() {
                             `${verse.book.name} ${verse.chapter}:${verse.number}`
                           )
                         }
-                        style={{ animationDelay: `${idx * 100}ms` }}
-                        className="w-full text-left animate-stagger-item bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-200/50 transition-all duration-500 group relative overflow-hidden"
+                        className="w-full text-left bg-white p-6 rounded-2xl border border-slate-100 mb-4"
                       >
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out" />
-
-                        <p className="text-slate-700 leading-relaxed font-serif text-lg mb-2">
+                        <p className="text-slate-700 font-serif mb-2">
                           {verse.text}
                         </p>
-
-                        <div className="flex justify-between items-center border-t border-slate-50 pt-3 mt-2">
-                          <span className="text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 group-hover:bg-amber-50 group-hover:text-amber-700 group-hover:border-amber-100 transition-colors duration-300">
-                            <span className="mr-1">📖</span>
-                            {verse.book.name} {verse.chapter}:{verse.number}
-                          </span>
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                            Ler <ExternalLink size={12} />
-                          </span>
-                        </div>
+                        <span className="text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-full">
+                          {verse.book.name} {verse.chapter}:{verse.number}
+                        </span>
                       </button>
-                    ))}
-                    {verses.length === 0 && !loadingVerses && (
-                      <p className="text-slate-400 text-center py-10">
-                        Nenhuma menção encontrada para este termo exato.
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                    <p className="text-sm text-slate-400 font-medium">
-                      Carregando ou nenhuma referência encontrada...
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
 
-        {/* VIEW: BIBLE READER */}
-        {view === "bible" && (
-          <BibleReader
-            entities={entities}
-            onEntityClick={selectEntity}
-            currentBook={readerBook}
-            setCurrentBook={setReaderBook}
-            currentChapter={readerChapter}
-            setCurrentChapter={setReaderChapter}
-            scrollContainerRef={mainRef}
-            initialScroll={bibleScrollY}
-            targetVerse={targetVerse}
-            onScrollComplete={() => setTargetVerse(null)}
-          />
-        )}
+      {/* --- CONTAINER 2: BIBLE (Always rendered, toggled via CSS) --- */}
+      <main
+        ref={bibleRef}
+        className={`flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 ${
+          !isBibleView ? "hidden" : "block"
+        }`}
+      >
+        <BibleReader
+          entities={entities}
+          onEntityClick={selectEntity}
+          currentBook={readerBook}
+          setCurrentBook={setReaderBook}
+          currentChapter={readerChapter}
+          setCurrentChapter={setReaderChapter}
+          // scrollContainerRef={bibleRef} // BibleReader uses this to reset scroll
+          // We pass the scroll container implicitly via context or just usage,
+          // but actually BibleReader needs the ref to scroll to top on chapter change.
+          scrollContainerRef={bibleRef}
+          initialScroll={bibleScrollY} // Ignored now mostly, essentially 0
+          targetVerse={targetVerse}
+          onScrollComplete={() => setTargetVerse(null)}
+          lenis={bibleLenis}
+        />
       </main>
 
       {/* FADE INFERIOR */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Book } from "lucide-react";
 import { useBibleApi } from "../hooks/useBibleApi";
 import SmartText from "./SmartText";
@@ -88,6 +89,7 @@ export default function BibleReader({
   initialScroll,
   targetVerse,
   onScrollComplete,
+  lenis,
 }) {
   const { getChapter, loading } = useBibleApi();
   const [verses, setVerses] = useState([]);
@@ -99,6 +101,7 @@ export default function BibleReader({
 
   useEffect(() => {
     const loadChapter = async () => {
+      setVerses([]); // Clear verses to avoid stale content
       const data = await getChapter(book, chapter);
       setVerses(data);
     };
@@ -109,60 +112,81 @@ export default function BibleReader({
   const lastLocation = React.useRef({ book: null, chapter: null });
   const didRestore = React.useRef(false);
 
+  // Scroll Handling - Now simplified because container persists!
+  // Scroll Handling - Simplified & Decoupled
   React.useLayoutEffect(() => {
-    // Wait for content to load before adjusting scroll
     if (loading || verses.length === 0) return;
 
-    const currentLocationKey = `${book}-${chapter}`;
-    const prevLocationKey = `${lastLocation.current.book}-${lastLocation.current.chapter}`;
-    const locationChanged = currentLocationKey !== prevLocationKey;
-
     if (scrollContainerRef && scrollContainerRef.current) {
-      // 1. Check for Target Verse (Priority)
+      // BRANCH 1: TARGET VERSE (High Priority)
       if (targetVerse) {
-        // Create a composite ID to ensure we don't pick up old elements if any
-        const verseEl = document.getElementById(`verse-${targetVerse}`);
-        if (verseEl) {
-          verseEl.scrollIntoView({ behavior: "smooth", block: "center" });
-          if (onScrollComplete) onScrollComplete();
+        // We will try to scroll to the veres multiple times to account for layout/rendering delays
+        let attempts = 0;
+        const maxAttempts = 40; // 40 * 50ms = 2000ms (2 seconds)
 
-          didRestore.current = true; // Mark as settled
-          lastLocation.current = { book, chapter };
-          return;
+        const tryScroll = () => {
+          const verseEl = document.getElementById(`verse-${targetVerse}`);
+          if (verseEl) {
+            // FORCE NATIVE SCROLL to rule out Lenis issues
+            // We use 'auto' for instant jump or 'smooth' if prefered.
+            // Let's stick to smooth but using native API which is robust.
+            verseEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Visual confirmation for user/us
+            verseEl.style.transition = "background-color 0.5s";
+            verseEl.style.backgroundColor = "rgba(251, 191, 36, 0.3)"; // Amber highlight
+            setTimeout(() => {
+              verseEl.style.backgroundColor = "transparent";
+            }, 2000);
+
+            // Success! Clear target after delay
+            setTimeout(() => {
+              if (onScrollComplete) onScrollComplete();
+            }, 500); // 500ms delay to ensure scroll happens
+            return true;
+          }
+          return false;
+        };
+
+        // Try immediately
+        if (!tryScroll()) {
+          // Retry loop
+          const interval = setInterval(() => {
+            attempts++;
+            if (tryScroll() || attempts >= maxAttempts) {
+              clearInterval(interval);
+              if (attempts >= maxAttempts) {
+                console.warn(
+                  `Could not find verse-${targetVerse} after retry.`
+                );
+                // Even if failed, we do NOT scroll to top, to avoid jumping.
+                // Maybe user is at previous position which is better than top.
+                if (onScrollComplete) onScrollComplete();
+              }
+            }
+          }, 50);
         }
+
+        // Always update location so we don't trigger "Chapter Change" on next render
+        lastLocation.current = { book, chapter };
+        return; // EXIT HERE. Do not let "Chapter Change" logic run.
       }
 
-      // 2. Standard Scroll Handling
-      if (locationChanged) {
-        // If location changed, we should generally reset to 0 UNLESS we possess a heavy persistence rule
-        // But here, we handle "initialScroll" only on MOUNT usually.
-        // However, if we navigate chapters, we want 0.
+      // BRANCH 2: CHAPTER CHANGE (Low Priority)
+      const isNewBookOrChapter =
+        lastLocation.current.book !== book ||
+        lastLocation.current.chapter !== chapter;
 
-        if (!didRestore.current && initialScroll > 0) {
-          // Initial mount restoration
-          scrollContainerRef.current.scrollTop = initialScroll;
+      if (isNewBookOrChapter) {
+        if (lenis) {
+          lenis.scrollTo(0, { immediate: true });
         } else {
-          // Navigate to new chapter -> Top
-          // But don't do this if we just handled a targetVerse (which returns above)
           scrollContainerRef.current.scrollTop = 0;
         }
-
-        didRestore.current = true;
         lastLocation.current = { book, chapter };
       }
-
-      // If location didn't change (e.g. targetVerse cleared), do NOTHING.
     }
-  }, [
-    loading,
-    verses,
-    initialScroll,
-    scrollContainerRef,
-    targetVerse,
-    onScrollComplete,
-    book,
-    chapter,
-  ]);
+  }, [loading, verses, targetVerse, onScrollComplete, book, chapter, lenis]);
 
   const handleNext = () => {
     setCurrentChapter((prev) => prev + 1);
@@ -214,85 +238,87 @@ export default function BibleReader({
         </div>
       </div>
 
-      {/* BOOK SELECTION MODAL */}
-      {showBookSelector && (
-        <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-xl overflow-y-auto animate-enter-view">
-          <div className="min-h-screen px-6 py-8 pb-20 max-w-2xl mx-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-8 sticky top-0 bg-white/95 py-4 border-b border-slate-100 z-10">
-              <h2 className="text-2xl font-bold text-slate-800 font-serif">
-                Livros
-              </h2>
-              <button
-                onClick={() => setShowBookSelector(false)}
-                className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-500"
-              >
-                <ChevronLeft size={24} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {/* ANTIGO TESTAMENTO */}
-              <div>
-                <h3 className="text-amber-600 font-bold uppercase tracking-widest text-xs mb-6 border-b border-amber-100 pb-2">
-                  Antigo Testamento
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {OT_BOOKS.map((b) => (
-                    <button
-                      key={b}
-                      onClick={() => {
-                        setCurrentBook(b);
-                        setCurrentChapter(1);
-                        setShowBookSelector(false);
-                        didRestore.current = false; // Reset restore capability on book change
-                      }}
-                      className={`p-3 rounded-xl text-sm font-medium text-left transition-all ${
-                        book === b
-                          ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20"
-                          : "bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700"
-                      }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
+      {/* BOOK SELECTION MODAL - PORTALED to Body to escape overflow/transforms */}
+      {showBookSelector &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-xl overflow-y-auto animate-enter-view">
+            <div className="min-h-screen px-6 py-8 pb-20 max-w-2xl mx-auto">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-8 sticky top-0 bg-white/95 py-4 border-b border-slate-100 z-10">
+                <h2 className="text-2xl font-bold text-slate-800 font-serif">
+                  Livros
+                </h2>
+                <button
+                  onClick={() => setShowBookSelector(false)}
+                  className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-500"
+                >
+                  <ChevronLeft size={24} />
+                </button>
               </div>
 
-              {/* NOVO TESTAMENTO */}
-              <div>
-                <h3 className="text-blue-600 font-bold uppercase tracking-widest text-xs mb-6 border-b border-blue-100 pb-2">
-                  Novo Testamento
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {NT_BOOKS.map((b) => (
-                    <button
-                      key={b}
-                      onClick={() => {
-                        setCurrentBook(b);
-                        setCurrentChapter(1);
-                        setShowBookSelector(false);
-                        didRestore.current = false;
-                      }}
-                      className={`p-3 rounded-xl text-sm font-medium text-left transition-all ${
-                        book === b
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                          : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-                      }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* ANTIGO TESTAMENTO */}
+                <div>
+                  <h3 className="text-amber-600 font-bold uppercase tracking-widest text-xs mb-6 border-b border-amber-100 pb-2">
+                    Antigo Testamento
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {OT_BOOKS.map((b) => (
+                      <button
+                        key={b}
+                        onClick={() => {
+                          setCurrentBook(b);
+                          setCurrentChapter(1);
+                          setShowBookSelector(false);
+                          didRestore.current = false; // Reset restore capability on book change
+                        }}
+                        className={`p-3 rounded-xl text-sm font-medium text-left transition-all ${
+                          book === b
+                            ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20"
+                            : "bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700"
+                        }`}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* NOVO TESTAMENTO */}
+                <div>
+                  <h3 className="text-blue-600 font-bold uppercase tracking-widest text-xs mb-6 border-b border-blue-100 pb-2">
+                    Novo Testamento
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {NT_BOOKS.map((b) => (
+                      <button
+                        key={b}
+                        onClick={() => {
+                          setCurrentBook(b);
+                          setCurrentChapter(1);
+                          setShowBookSelector(false);
+                          didRestore.current = false;
+                        }}
+                        className={`p-3 rounded-xl text-sm font-medium text-left transition-all ${
+                          book === b
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                            : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* TEXT CONTENT */}
       <div className="px-6 max-w-2xl mx-auto">
-        {loading ? (
+        {loading || verses.length === 0 ? (
           <div className="space-y-4 animate-pulse mt-8">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-4 bg-slate-100 rounded w-full"></div>
