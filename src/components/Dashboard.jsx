@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useBiblosData } from "../hooks/useBiblosData";
 import ErrorDisplay from "./ErrorDisplay";
 import AdminPanel from "./AdminPanel";
 import VerseDisplay from "./VerseDisplay";
+import ExitConfirmation from "./ExitConfirmation"; // Import new component
 import { useBibleApi } from "../hooks/useBibleApi";
 import {
   Search,
@@ -30,9 +31,46 @@ export default function Dashboard() {
   const [verses, setVerses] = useState([]);
   const [loadingVerses, setLoadingVerses] = useState(false);
 
+  const [activeTab, setActiveTab] = useState("origin"); // origin, mentions
+  const [showExitConfirm, setShowExitConfirm] = useState(false); // State for exit modal
+
+  // EXIT CONFIRMATION LOGIC (Back Button Trap)
+  useEffect(() => {
+    // 1. Push a state on mount so we have something to pop
+    window.history.pushState(null, document.title, window.location.href);
+
+    const handlePopState = (event) => {
+      // If we are showing the modal, close it or exit?
+      // Simplified: If user hits back, we show modal.
+
+      // If we are NOT at home (e.g. details/results), let the internal logic handle it?
+      // Actually, standard PWA behavior: System Back should trigger internal Back.
+      // But implementing fully synced history is complex.
+      // Let's focus on the user's request: "Prevent accidental exit".
+      // This usually implies preventing exit from the ROOT (Home).
+
+      if (view === "home" && !showExitConfirm) {
+        // Prevent default exit behavior
+        // We push state AGAIN to stay on the page effectively
+        window.history.pushState(null, document.title, window.location.href);
+        setShowExitConfirm(true);
+      } else if (view !== "home") {
+        // If deep in app, we probably want to just go back internally.
+        // The popstate event implies the URL changed (back), but SPA didn't reload.
+        // Ideally we sync this.
+        window.history.pushState(null, document.title, window.location.href); // Trap it
+        goBack(); // Use our internal router
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [view, showExitConfirm]); // Dependencies ensure we capture current view state
+
   // Check if current user is the specific admin.
-  // Note: For real security, this should be a custom claim or DB check,
-  // but specific email check was requested.
   const isAdmin = user?.email === "marcosfelipemellosantana@gmail.com";
 
   const results = useMemo(() => {
@@ -59,17 +97,23 @@ export default function Dashboard() {
   const selectEntity = async (entity) => {
     setSelectedEntity(entity);
     setView("details");
-    // Ao entrar, mostramos a origem por padrão (resetamos search_all)
-    setSearchTerm("");
+    setActiveTab("origin");
+    // Do NOT clear search term, so we can go back to results
     setVerses([]);
   };
 
   const goBack = () => {
     if (view === "details") {
-      setView("results");
+      // improved back logic:
+      if (searchTerm.length > 0) {
+        setView("results");
+      } else {
+        setView("home");
+      }
       setTimeout(() => {
         setSelectedEntity(null);
         setVerses([]);
+        setActiveTab("origin");
       }, 300);
     } else if (view === "admin") {
       setView("home");
@@ -117,6 +161,26 @@ export default function Dashboard() {
     <div className="flex flex-col h-screen max-w-md mx-auto bg-white font-sans text-slate-900 shadow-2xl relative overflow-hidden transform-gpu">
       {/* Background Glow */}
       <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[60%] bg-gradient-to-br from-amber-100/40 via-purple-50/20 to-transparent blur-3xl pointer-events-none z-0" />
+
+      {/* EXIT CONFIRMATION MODAL */}
+      {showExitConfirm && (
+        <ExitConfirmation
+          onCancel={() => setShowExitConfirm(false)}
+          onConfirm={() => {
+            // Force exit
+            // We pushed state repeatedly, so standard history.back() might just pop one of our dummy states.
+            // window.close() is blocked.
+            // Best bet for PWA/Web: Navigate to about:blank or similar, or close tab if possible.
+            // OR: We intentionally let the *next* back action succeed?
+            // Actually, simply calling history.go(-2) might work.
+            // For now, let's try history.back() multiple times or window.close.
+            setShowExitConfirm(false); // Hide modal
+            window.history.go(-3); // Try to go back far enough to exit our trap
+            // Fallback
+            window.close();
+          }}
+        />
+      )}
 
       {/* HEADER */}
       <header className="relative z-20 px-4 pt-6 pb-2 backdrop-blur-sm bg-white/50 sticky top-0 transition-colors duration-500">
@@ -185,7 +249,7 @@ export default function Dashboard() {
               placeholder={
                 status === "error"
                   ? "Conexão interrompida..."
-                  : "Pesquise nomes, lugares..."
+                  : "Nomes, lugares, símbolos, artefatos, objetos etc..."
               }
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
@@ -225,92 +289,163 @@ export default function Dashboard() {
         {/* VIEW: RESULTS */}
         {view === "results" && status !== "error" && (
           <div className="space-y-3 pt-2">
-            {results.length === 0 ? (
-              <div className="text-center py-12 animate-enter-view">
-                <p className="text-slate-400">Nenhum resultado encontrado.</p>
-              </div>
-            ) : (
-              results.map((item, index) => {
-                const style = getTypeStyles(item.type);
-                const Icon = style.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => selectEntity(item)}
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
+            {/* KB RESULTS */}
+            {results.map((item, index) => {
+              const style = getTypeStyles(item.type);
+              const Icon = style.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={async () => {
+                    let finalItem = { ...item };
+                    if (!finalItem.origin_ref) {
+                      try {
+                        const term = finalItem.search_term || finalItem.name;
+                        const found = await searchVerses(term);
+                        if (found && found.length > 0) {
+                          const first = found[0];
+                          finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                        }
+                      } catch (e) {
+                        console.warn("Auto-detect origin failed", e);
+                      }
+                    }
+                    selectEntity(finalItem);
+                  }}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
+                >
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
                   >
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
-                    >
-                      <Icon size={20} className={style.color} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
-                        {item.name}
-                      </h3>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
-                        {item.category}
-                      </span>
-                    </div>
-                    <ChevronRight
-                      size={20}
-                      className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
-                    />
-                  </button>
-                );
-              })
-            )}
+                    <Icon size={20} className={style.color} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
+                      {item.name}
+                    </h3>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
+                      {item.category}
+                    </span>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
+                  />
+                </button>
+              );
+            })}
 
             {/* DYNAMIC SEARCH OPTION */}
             {searchTerm.length > 2 && (
-              <button
-                onClick={async () => {
-                  const term = searchTerm;
-                  try {
-                    const found = await searchVerses(term);
-                    if (found && found.length > 0) {
-                      const first = found[0];
-                      const originRef = `${first.book.name} ${first.chapter}:${first.number}`;
+              <div
+                className={`transition-all duration-500 ease-out ${
+                  results.length === 0
+                    ? "mt-12 animate-enter-view"
+                    : "mt-6 pt-6 border-t border-slate-100"
+                }`}
+              >
+                {results.length === 0 && (
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4">
+                      <Search size={32} />
+                    </div>
+                    <p className="text-slate-600 font-medium text-lg">
+                      Não encontrado no Atlas.
+                    </p>
+                    <p className="text-slate-400 text-sm mt-1 max-w-[200px] mx-auto leading-relaxed">
+                      Mas não se preocupe, você pode buscar em todo o texto
+                      sagrado.
+                    </p>
+                  </div>
+                )}
 
+                <button
+                  onClick={async () => {
+                    const term = searchTerm;
+                    try {
+                      // Trigger loading visually if needed, but primarily select the dynamic entity
                       const dynamicEntity = {
                         id: `search-${Date.now()}`,
                         name: term,
                         description: "Resultado da busca na Bíblia Completa",
-                        type: "place",
-                        origin_ref: originRef,
+                        type: "place", // Use 'place' to get a nice icon, or specific type
+                        origin_ref: null, // Will be fetched in details view if needed, or we just rely on "Mentions" tab
                         search_term: term,
                       };
+
+                      // Pre-fetch if we want origin populated (optional, keep existing logic logic inside main flow if preferred)
+                      // Existing logic did: fetch -> if found -> populate origin -> select.
+                      // Let's keep it consistent with previous logic to ensure "Origin" tab isn't empty if possible.
+
+                      const found = await searchVerses(term);
+                      if (found && found.length > 0) {
+                        const first = found[0];
+                        dynamicEntity.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                      } else {
+                        dynamicEntity.description =
+                          "Termo não encontrado na Bíblia";
+                        dynamicEntity.type = "other";
+                      }
+
                       selectEntity(dynamicEntity);
-                    } else {
-                      const dynamicEntity = {
-                        id: `search-${Date.now()}`,
-                        name: term,
-                        description: "Termo não encontrado",
-                        type: "other",
-                        origin_ref: null,
-                        search_term: term,
-                      };
-                      selectEntity(dynamicEntity);
+                    } catch (e) {
+                      console.warn("Erro ao buscar origem dinâmica", e);
                     }
-                  } catch (e) {
-                    console.warn("Erro ao buscar origem dinâmica", e);
-                  }
-                }}
-                className="w-full bg-amber-50 p-4 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:bg-amber-100 transition-all duration-300 flex items-center group text-left mt-2"
-              >
-                <div className="w-12 h-12 rounded-xl bg-amber-200 flex items-center justify-center mr-4 text-amber-700">
-                  <Search size={20} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-amber-900">
-                    Pesquisar "{searchTerm}" na Bíblia
-                  </h3>
-                  <p className="text-xs text-amber-700/70">
-                    Buscar em todo o texto sagrado...
-                  </p>
-                </div>
-              </button>
+                  }}
+                  className={`w-full p-5 rounded-2xl transition-all duration-300 flex items-center group text-left relative overflow-hidden ${
+                    results.length === 0
+                      ? "bg-amber-500 text-white shadow-xl shadow-amber-500/30 hover:bg-amber-600 hover:scale-[1.02] active:scale-[0.98]"
+                      : "bg-slate-50 border border-slate-200 hover:bg-white hover:border-amber-200 hover:shadow-md"
+                  }`}
+                >
+                  {/* Decorative background for primary button */}
+                  {results.length === 0 && (
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+                  )}
+
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 transition-colors ${
+                      results.length === 0
+                        ? "bg-white/20 text-white"
+                        : "bg-white text-slate-400 border border-slate-100 group-hover:text-amber-500"
+                    }`}
+                  >
+                    <BookOpen size={24} />
+                  </div>
+
+                  <div className="flex-1">
+                    <h3
+                      className={`font-bold text-lg ${
+                        results.length === 0
+                          ? "text-white"
+                          : "text-slate-700 group-hover:text-amber-700"
+                      }`}
+                    >
+                      Pesquisar na Bíblia
+                    </h3>
+                    <p
+                      className={`text-xs ${
+                        results.length === 0
+                          ? "text-amber-100"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      Buscar "{searchTerm}" nas escrituras
+                    </p>
+                  </div>
+
+                  <div
+                    className={`p-2 rounded-full ${
+                      results.length === 0
+                        ? "bg-white/20 text-white"
+                        : "text-slate-300 group-hover:text-amber-500"
+                    }`}
+                  >
+                    <ChevronRight size={20} />
+                  </div>
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -353,25 +488,28 @@ export default function Dashboard() {
             <div className="flex gap-4 mb-6 border-b border-slate-100 pb-2">
               <button
                 className={`pb-2 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  !searchTerm.includes("search_all")
+                  activeTab === "origin"
                     ? "text-amber-500 border-b-2 border-amber-500"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
                 onClick={() => {
                   setLoadingVerses(false);
                   setVerses([]); // Limpa para mostrar origem
+                  setActiveTab("origin");
                 }}
               >
                 História de Origem
               </button>
               <button
                 className={`pb-2 text-sm font-bold uppercase tracking-wide transition-colors ${
-                  searchTerm.includes("search_all")
+                  activeTab === "mentions"
                     ? "text-amber-500 border-b-2 border-amber-500"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
                 onClick={() => {
                   setLoadingVerses(true);
+                  setActiveTab("mentions"); // Switch tab immediately
+
                   const term =
                     selectedEntity.search_term ||
                     selectedEntity.name.split("(")[0].trim();
@@ -379,8 +517,6 @@ export default function Dashboard() {
                     setVerses(res);
                     setLoadingVerses(false);
                   });
-                  // Gambiarra visual state para saber qual tab está ativa
-                  setSearchTerm("search_all");
                 }}
               >
                 Todas as Menções
@@ -388,7 +524,7 @@ export default function Dashboard() {
             </div>
 
             {/* TAB: HISTÓRIA DE ORIGEM */}
-            {!searchTerm.includes("search_all") && (
+            {activeTab === "origin" && (
               <div className="space-y-4 animate-enter-view">
                 {selectedEntity.origin_ref ? (
                   <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden">
@@ -418,7 +554,7 @@ export default function Dashboard() {
             )}
 
             {/* TAB: TODAS AS MENÇÕES */}
-            {searchTerm.includes("search_all") && (
+            {activeTab === "mentions" && (
               <div>
                 <h3 className="font-bold text-slate-800 mb-5 flex items-center gap-2 px-1 text-lg">
                   <Bookmark

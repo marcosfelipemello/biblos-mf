@@ -1,6 +1,16 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { Lock, Mail, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  Sparkles,
+  Download,
+  Share,
+  Smartphone,
+  X,
+  Menu,
+} from "lucide-react";
 import Logo from "./Logo";
 
 export default function Login() {
@@ -9,6 +19,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [localError, setLocalError] = useState("");
+  const [showInstallModal, setShowInstallModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,6 +72,7 @@ export default function Login() {
           </h1>
           <p className="text-slate-500 text-sm mt-2">Acesso Restrito</p>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -116,7 +128,94 @@ export default function Login() {
             )}
           </button>
         </form>
+
+        {/* INSTALL BUTTON */}
+        <div className="mt-8 text-center border-t border-slate-100 pt-6">
+          <button
+            onClick={() => setShowInstallModal(true)}
+            className="text-amber-600 font-medium text-sm flex items-center justify-center gap-2 mx-auto hover:text-amber-700 transition-colors py-2 px-4 rounded-full hover:bg-amber-50"
+          >
+            <Download size={18} />
+            Instalar Aplicativo
+          </button>
+        </div>
       </div>
+
+      {/* INSTALL MODAL */}
+      {showInstallModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowInstallModal(false)}
+        >
+          <div
+            className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowInstallModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <Smartphone className="text-amber-500" />
+              Instalar Biblos MF
+            </h3>
+            <p className="text-slate-500 text-sm mb-6">
+              Tenha acesso offline e experiência completa.
+            </p>
+
+            <div className="space-y-6">
+              {/* ANDROID */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                  🤖 Android (Chrome)
+                </h4>
+                <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside">
+                  <li>
+                    Toque no menu{" "}
+                    <span className="font-bold">⋮ (Três pontos)</span>
+                  </li>
+                  <li>
+                    Selecione{" "}
+                    <span className="font-bold">Instalar aplicativo</span> ou{" "}
+                    <span className="font-bold">Adicionar à tela inicial</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* iOS */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                  🍎 iPhone (Safari)
+                </h4>
+                <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside">
+                  <li>
+                    Toque no botão{" "}
+                    <span className="font-bold">
+                      <Share size={12} className="inline mx-1" /> Compartilhar
+                    </span>
+                  </li>
+                  <li>
+                    Role para baixo e toque em{" "}
+                    <span className="font-bold">
+                      Adicionar à Tela de Início
+                    </span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowInstallModal(false)}
+              className="w-full mt-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors"
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

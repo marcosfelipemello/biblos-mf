@@ -2,6 +2,8 @@ import { useAuth } from "./hooks/useAuth";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 
+import UpdatePrompt from "./components/UpdatePrompt";
+
 function App() {
   const { user, loading } = useAuth();
 
@@ -13,7 +15,12 @@ function App() {
     );
   }
 
-  return user ? <Dashboard /> : <Login />;
+  return (
+    <>
+      <UpdatePrompt />
+      {user ? <Dashboard /> : <Login />}
+    </>
+  );
 }
 
 export default App;
