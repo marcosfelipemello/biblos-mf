@@ -16,7 +16,7 @@ export const BOOK_NAMES = {
   ed: "Esdras",
   ne: "Neemias",
   et: "Ester",
-  job: "Jó",
+  jó: "Jó",
   sl: "Salmos",
   pv: "Provérbios",
   ec: "Eclesiastes",
