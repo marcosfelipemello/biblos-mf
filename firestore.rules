@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================
+    // CONTEÚDO BÍBLICO (PÚBLICO)
+    // ========================================
+    
+    // Versículos da Bíblia - Leitura pública
+    match /verses/{verseId} {
+      allow read: if true; // Qualquer pessoa pode ler
+      allow write: if false; // Importação apenas via Admin SDK
+    }
+    
+    // Base de conhecimento (personagens, lugares, etc)
+    match /entities/{entityId} {
+      allow read: if true; // Qualquer pessoa pode ler
+      allow write: if false; // Importação apenas via Admin SDK
+    }
+    
+    // ========================================
+    // DADOS PRIVADOS DOS USUÁRIOS
+    // ========================================
+    
+    // Função auxiliar: verifica se é o próprio usuário
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Função auxiliar: verifica se é admin
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.admin == true;
+    }
+    
+    // Perfil do usuário
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+      
+      // Diário pessoal
+      match /journal/{entryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && 
+                        request.resource.data.title.size() < 200 &&
+                        request.resource.data.content.size() < 50000;
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      // Pedidos de oração
+      match /prayers/{prayerId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && 
+                        request.resource.data.content.size() < 10000;
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+      
+      // Destaques/marcações da Bíblia
+      match /highlights/{highlightId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // ========================================
+    // BLOQUEIO PADRÃO
+    // ========================================
+    
+    // Qualquer outro documento não especificado acima = bloqueado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

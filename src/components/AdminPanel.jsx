@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import {
@@ -14,8 +14,10 @@ import {
   ArrowLeft,
   ShieldCheck,
   RefreshCw,
+  ShieldX,
 } from "lucide-react";
 import { KNOWLEDGE_BASE } from "../data/knowledgeBase";
+import { auth as mainAuth } from "../config/firebase";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCG8j-KgPOLIVdTTCmiGtQA7VVT_5ysFM8",
@@ -32,6 +34,81 @@ export default function AdminPanel({ onBack }) {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+  // Verificar se o usuário é admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const user = mainAuth.currentUser;
+        if (user) {
+          const idTokenResult = await user.getIdTokenResult();
+          setIsAdmin(!!idTokenResult.claims.admin);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar status de admin:", error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
+
+  // Loading enquanto verifica permissões
+  if (checkingAdmin) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Acesso negado se não for admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+            >
+              <ArrowLeft size={24} className="text-slate-700" />
+            </button>
+            <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+              <ShieldX className="text-red-500" size={32} />
+              Acesso Negado
+            </h1>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+            <div className="text-center">
+              <ShieldX size={64} className="mx-auto mb-4 text-red-500" />
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                Área Restrita
+              </h2>
+              <p className="text-slate-600 mb-6">
+                Apenas administradores podem acessar o Painel Administrativo.
+              </p>
+              <p className="text-sm text-slate-400">
+                Se você deveria ter acesso, entre em contato com o administrador
+                do sistema.
+              </p>
+              <button
+                onClick={onBack}
+                className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                Voltar ao Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreateUser = async (e) => {
     e.preventDefault();

@@ -14,6 +14,7 @@ import {
   Save,
   Quote,
   Clock,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useJournal } from "../hooks/useJournal";
@@ -96,7 +97,7 @@ export default function Devotionals({
     },
     {
       id: "journal",
-      title: "Meu Diário",
+      title: "Meu Devocional",
       desc: "Escreva suas reflexões.",
       icon: Edit3,
       color: "bg-emerald-100 text-emerald-600",
@@ -234,53 +235,122 @@ function ReadingPlanView({ onBack }) {
 
 // --- JOURNAL VIEW ---
 function JournalView({ user, onBack, setIsNavVisible }) {
-  const { entries, addEntry, deleteEntry } = useJournal(user);
+  const { entries, addEntry, deleteEntry, updateEntry } = useJournal(user);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [viewingEntry, setViewingEntry] = useState(null); // New state for reading modal
   const [newContent, setNewContent] = useState("");
   const [newTitle, setNewTitle] = useState("");
+  const textareaRef = React.useRef(null);
+  const readingTextareaRef = React.useRef(null);
 
-  // Toggle Nav Visibility when Editing
+  // Toggle Nav when Editing or Viewing
   React.useEffect(() => {
     if (setIsNavVisible) {
-      setIsNavVisible(!isEditing);
+      setIsNavVisible(!isEditing && !viewingEntry);
     }
     return () => {
       if (setIsNavVisible) setIsNavVisible(true);
     };
-  }, [isEditing, setIsNavVisible]);
+  }, [isEditing, viewingEntry, setIsNavVisible]);
+
+  // Auto-resize textarea to make page scroll (lines move with text)
+  React.useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
+    }
+  }, [newContent, isEditing]);
+
+  // Auto-resize READING textarea
+  React.useEffect(() => {
+    if (viewingEntry && readingTextareaRef.current) {
+      readingTextareaRef.current.style.height = "auto";
+      readingTextareaRef.current.style.height =
+        readingTextareaRef.current.scrollHeight + "px";
+    }
+  }, [viewingEntry]);
+
+  // Helper: Auto-Capitalize (Title, Content, Paragraphs)
+  const capitalizeText = (text) => {
+    if (!text) return "";
+    return text.replace(/(?:^|\n)./g, (match) => match.toUpperCase());
+  };
+
+  // Helper: Group by Month
+  const groupEntriesByMonth = (entriesList) => {
+    const groups = {};
+    entriesList.forEach((entry) => {
+      const date = entry.createdAt ? new Date(entry.createdAt) : new Date();
+      const monthYear = date.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric",
+      });
+      const formatted = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+
+      if (!groups[formatted]) groups[formatted] = [];
+      groups[formatted].push(entry);
+    });
+    return groups;
+  };
 
   const handleSave = () => {
     if (!newContent.trim()) return;
-    addEntry(newContent, newTitle);
+
+    const formattedTitle = capitalizeText(newTitle);
+    const formattedContent = capitalizeText(newContent);
+
+    if (editingId) {
+      updateEntry(editingId, formattedContent, formattedTitle);
+    } else {
+      addEntry(formattedContent, formattedTitle);
+    }
+
     setNewContent("");
     setNewTitle("");
+    setEditingId(null);
     setIsEditing(false);
   };
 
-  // Helper to format date
+  const handleEdit = (entry, e) => {
+    e.stopPropagation();
+    setEditingId(entry.id);
+    setNewTitle(entry.title || "");
+    setNewContent(entry.content || "");
+    setIsEditing(true);
+    setViewingEntry(null); // Close reading modal if open
+  };
+
+  const handleDelete = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm("Tem certeza que deseja excluir esta nota?")) {
+      deleteEntry(id);
+      if (viewingEntry?.id === id) setViewingEntry(null);
+    }
+  };
+
+  const handleCreate = () => {
+    setEditingId(null);
+    setNewTitle("");
+    setNewContent("");
+    setIsEditing(true);
+  };
+
   const formatDate = (date) => {
     if (!date) return "";
     return new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",
-      month: "long",
-      year: "numeric",
+      month: "short",
     }).format(date);
   };
 
-  const formatTime = (date) => {
-    if (!date) return "";
-    return new Intl.DateTimeFormat("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
-
-  // WRITING MODE (School Notebook Style)
+  // WRITING MODE (Handwriting Style)
   if (isEditing) {
     return (
       <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-scale-up">
         {/* Notebook Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-200/60 bg-[#fdfbf7] z-10">
+        <div className="flex justify-between items-center p-6 border-b border-slate-200/60 bg-[#fdfbf7] z-10 sticky top-0">
           <button
             onClick={() => setIsEditing(false)}
             className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-400"
@@ -288,7 +358,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
             <X size={24} />
           </button>
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Nova Nota
+            {editingId ? "Editar Nota" : "Nova Nota"}
           </span>
           <button
             onClick={handleSave}
@@ -303,9 +373,10 @@ function JournalView({ user, onBack, setIsNavVisible }) {
         <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
           {/* Lined Background */}
           <div
-            className="w-full min-h-full p-8 pt-10"
+            className="w-full min-h-full px-0 pt-0"
             style={{
-              backgroundImage: "linear-gradient(#e2e8f0 1px, transparent 1px)",
+              backgroundImage:
+                "linear-gradient(transparent calc(2.5rem - 1px), #cbd5e1 1px)",
               backgroundSize: "100% 2.5rem",
               backgroundColor: "#fdfbf7",
             }}
@@ -313,20 +384,43 @@ function JournalView({ user, onBack, setIsNavVisible }) {
             {/* Margin Line */}
             <div className="absolute top-0 bottom-0 left-12 w-px bg-red-200/50 pointer-events-none h-full"></div>
 
+            {/* Pencil Indicator (Aligned to Title Line) */}
+            <Edit3
+              size={18}
+              className="absolute left-6 top-[3.5rem] text-slate-400 animate-pulse pointer-events-none -rotate-90"
+            />
+
+            {/* Line 1: Date Header */}
+            <div className="w-full h-[2.5rem] flex items-end justify-end px-6 pb-0 relative z-10">
+              <span className="font-hand text-xl text-slate-500 leading-none translate-y-[4px]">
+                {new Intl.DateTimeFormat("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(new Date())}
+              </span>
+            </div>
+
+            {/* Line 2: Title */}
             <input
               type="text"
               placeholder="Título..."
               value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 placeholder:text-slate-300 mb-2 px-6 text-slate-800 leading-[2.5rem]"
-              style={{ lineHeight: "2.5rem" }}
+              onChange={(e) => setNewTitle(capitalizeText(e.target.value))}
+              className="w-full h-[2.5rem] text-3xl font-hand bg-transparent border-none focus:ring-0 outline-none placeholder:text-slate-300 pl-16 pr-6 text-slate-800 leading-[2.5rem] p-0"
+              style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
             />
+
+            {/* Line 3+: Content */}
             <textarea
+              ref={textareaRef}
               placeholder="Escreva aqui..."
               value={newContent}
-              onChange={(e) => setNewContent(e.target.value)}
-              className="w-full h-[calc(100vh-200px)] bg-transparent border-none focus:ring-0 resize-none text-slate-600 font-serif text-lg px-6 placeholder:text-slate-300"
-              style={{ lineHeight: "2.5rem" }}
+              onChange={(e) => setNewContent(capitalizeText(e.target.value))}
+              className="w-full min-h-[calc(100vh-250px)] bg-transparent border-none focus:ring-0 outline-none resize-none text-slate-700 font-hand text-2xl pl-16 pr-6 placeholder:text-slate-300/50 leading-[2.5rem] p-0 overflow-hidden"
+              style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
               autoFocus
             />
           </div>
@@ -335,7 +429,92 @@ function JournalView({ user, onBack, setIsNavVisible }) {
     );
   }
 
-  // TIMELINE MODE (List)
+  // READING MODE (Full Screen Modal - now looks like Notebook)
+  if (viewingEntry) {
+    return (
+      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-enter-view">
+        <div className="flex items-center gap-3 p-6 mb-0 border-b border-slate-200/50 bg-[#fdfbf7] z-10 sticky top-0">
+          <button
+            onClick={() => setViewingEntry(null)}
+            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold uppercase tracking-widest text-slate-400">
+              Leitura
+            </h2>
+          </div>
+          <button
+            onClick={(e) => handleEdit(viewingEntry, e)}
+            className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors mr-2"
+          >
+            <Edit3 size={20} />
+          </button>
+          <button
+            onClick={(e) => handleDelete(viewingEntry.id, e)}
+            className="p-2 rounded-full hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
+          >
+            <Trash2 size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
+          {/* Lined Background MATCHING WRITE MODE */}
+          <div
+            className="w-full min-h-full px-0 pt-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(transparent calc(2.5rem - 1px), #cbd5e1 1px)",
+              backgroundSize: "100% 2.5rem",
+              backgroundColor: "#fdfbf7",
+            }}
+          >
+            {/* Margin Line */}
+            <div className="absolute top-0 bottom-0 left-12 w-px bg-red-200/50 pointer-events-none h-full"></div>
+
+            {/* Line 1: Date Header */}
+            <div className="w-full h-[2.5rem] flex items-end justify-end px-6 pb-0 relative z-10">
+              <span className="font-hand text-xl text-slate-500 leading-none translate-y-[4px]">
+                {new Intl.DateTimeFormat("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }).format(viewingEntry.createdAt)}
+              </span>
+            </div>
+
+            {/* Line 2: Title - USING READONLY INPUT FOR STRICT ALIGNMENT */}
+            <input
+              type="text"
+              value={viewingEntry.title || "Sem Título"}
+              readOnly
+              className="w-full h-[2.5rem] text-3xl font-hand bg-transparent border-none focus:ring-0 outline-none placeholder:text-slate-300 pl-16 pr-6 text-slate-800 leading-[2.5rem] p-0"
+              style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
+            />
+
+            {/* Line 3+: Content - USING READONLY TEXTAREA FOR ALIGNMENT */}
+            <textarea
+              ref={readingTextareaRef}
+              value={viewingEntry.content}
+              readOnly
+              className="w-full min-h-[calc(100vh-250px)] bg-transparent border-none focus:ring-0 outline-none resize-none text-slate-700 font-hand text-2xl pl-16 pr-6 leading-[2.5rem] p-0 overflow-hidden"
+              style={{
+                paddingTop: "0.6rem",
+                paddingLeft: "4rem",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // CARD GRID MODE (Main View)
+  const groupedEntries = groupEntriesByMonth(entries);
+
   return (
     <div className="fixed inset-0 z-[100] bg-slate-50 overflow-hidden flex flex-col animate-slide-up">
       {/* Sticky Header */}
@@ -347,97 +526,113 @@ function JournalView({ user, onBack, setIsNavVisible }) {
           >
             <ArrowLeft size={22} />
           </button>
-          <h2 className="text-xl font-bold text-slate-800">Meu Diário</h2>
+          <h2 className="text-xl font-bold text-slate-800">Meu Devocional</h2>
         </div>
         <div className="text-xs font-medium text-slate-400">
           {entries.length} notas
         </div>
       </div>
 
-      {/* Main Content Area - Scrollable */}
+      {/* Main Content Area - Grid */}
       <div className="flex-1 overflow-y-auto bg-[#f8f9fa] relative">
-        <div className="p-4 pb-32 max-w-lg mx-auto space-y-6 pt-6">
+        <div className="p-4 pb-32 pt-6">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
               <Edit3 size={64} className="mb-4 text-slate-300" />
               <p className="text-lg font-medium text-slate-500">
-                Seu diário está vazio.
+                Seu devocional está vazio.
               </p>
               <p className="text-sm text-slate-400 mb-6">
                 Toque no + para começar.
               </p>
 
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={handleCreate}
                 className="w-16 h-16 bg-slate-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
               >
                 <Plus size={32} />
               </button>
             </div>
           ) : (
-            entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="relative pl-6 border-l-2 border-slate-200 ml-4 group"
-              >
-                {/* Timeline Dot */}
-                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-200 border-2 border-white group-hover:bg-amber-400 transition-colors"></div>
+            <div className="space-y-8">
+              {Object.entries(groupedEntries).map(([month, monthEntries]) => (
+                <div key={month} className="animate-fade-in">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2 sticky top-0 bg-[#f8f9fa]/95 backdrop-blur py-2 z-10 w-fit px-3 rounded-r-lg">
+                    {month}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {monthEntries.map((entry) => (
+                      <button
+                        key={entry.id}
+                        onClick={() => setViewingEntry(entry)}
+                        className="bg-white rounded-r-2xl rounded-l-md shadow-sm border-y border-r border-slate-100 hover:shadow-md active:scale-95 transition-all text-left flex h-40 relative group overflow-visible"
+                      >
+                        {/* Spiral Binding (Left Side) */}
+                        <div className="w-6 h-full absolute left-0 top-0 bottom-0 bg-slate-100/50 rounded-l-md border-r border-slate-200/50 flex flex-col justify-evenly items-center py-2 z-10">
+                          {[...Array(6)].map((_, i) => (
+                            <div key={i} className="relative w-full h-4">
+                              {/* Hole */}
+                              <div className="w-2 h-2 rounded-full bg-slate-800/10 mx-auto"></div>
+                              {/* Wire Loop - Simulating the spiral going 'into' the paper */}
+                              <div className="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-3 border-t-2 border-slate-400 rounded-[100%] rotate-3 opacity-80"></div>
+                            </div>
+                          ))}
+                        </div>
 
-                {/* Date Header */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    {formatDate(entry.createdAt)}
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                  <span className="text-xs font-medium text-slate-300 flex items-center gap-1">
-                    <Clock size={10} />
-                    {formatTime(entry.createdAt)}
-                  </span>
-                </div>
+                        {/* Card Content (Paper) */}
+                        <div className="flex-1 px-3 pb-3 pl-8 pt-6 flex flex-col justify-between h-full bg-[#fffdf9] relative">
+                          {/* Lines background decoration (Subtle) */}
+                          <div
+                            className="absolute inset-0 left-6 pointer-events-none opacity-50"
+                            style={{
+                              backgroundImage:
+                                "linear-gradient(#e2e8f0 1px, transparent 1px)",
+                              backgroundSize: "100% 1.5rem",
+                            }}
+                          />
 
-                {/* Card */}
-                <div className="bg-white p-5 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
-                  {/* Paper texture overlay hint */}
-                  <div className="absolute top-0 left-0 w-1 h-full bg-amber-400/20"></div>
+                          <h3 className="font-hand text-xl font-bold text-slate-800 leading-[1.5rem] line-clamp-2 mb-2 relative z-10">
+                            {entry.title || "Sem Título"}
+                          </h3>
 
-                  <div className="flex justify-between items-start mb-2">
-                    {entry.title ? (
-                      <h3 className="font-bold text-slate-800">
-                        {entry.title}
-                      </h3>
-                    ) : (
-                      <span className="text-sm font-bold text-slate-300 italic">
-                        Sem título
-                      </span>
-                    )}
+                          <div className="mt-auto relative z-10 flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white/80 px-2 py-1 rounded-md backdrop-blur-sm">
+                              {formatDate(entry.createdAt)}
+                            </span>
+                          </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteEntry(entry.id);
-                      }}
-                      className="text-slate-200 hover:text-red-400 p-1"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                          {/* Action Buttons (Mobile Optimized) */}
+                          <div className="absolute bottom-1 right-1 flex gap-1 z-20">
+                            <div
+                              onClick={(e) => handleEdit(entry, e)}
+                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-amber-500 hover:bg-amber-50 active:scale-90 transition-all border border-slate-100"
+                            >
+                              <Edit3 size={16} />
+                            </div>
+                            <div
+                              onClick={(e) => handleDelete(entry.id, e)}
+                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all border border-slate-100"
+                            >
+                              <Trash2 size={16} />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
-
-                  <p className="text-slate-600 font-serif leading-relaxed whitespace-pre-wrap text-sm line-clamp-6">
-                    {entry.content}
-                  </p>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* FAB - Floating Action Button - Positioned Centered Horizontally, Above Nav Bar */}
+      {/* FAB - Floating Action Button (Only show if list is not empty) */}
       {entries.length > 0 && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50">
           <button
-            onClick={() => setIsEditing(true)}
-            className="w-16 h-16 bg-slate-900 text-white rounded-full shadow-2xl shadow-slate-900/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-4 border-white/20"
+            onClick={handleCreate}
+            className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-600/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-4 border-white/20"
           >
             <Plus size={32} />
           </button>
