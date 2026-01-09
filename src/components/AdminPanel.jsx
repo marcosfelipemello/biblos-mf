@@ -57,55 +57,126 @@ export default function AdminPanel({ onBack }) {
   const handleSeedData = async () => {
     if (
       !window.confirm(
-        "Isso APAGARÁ todos os dados atuais e importará a NOVA Base de Conhecimento (Sem duplicatas). Continuar?"
+        "ATENÇÃO: Isso vai executar uma LIMPEZA PROFUNDA no banco.\n\n1. Deletar TODAS as entidades antigas.\n2. Deletar TODOS os versículos antigos.\n3. Inserir a nova Base de Conhecimento.\n\nIsso pode levar alguns segundos. Continuar?"
       )
     )
       return;
     setLoading(true);
-    setMsg({ type: "", text: "" });
+    setMsg({ type: "info", text: "Iniciando protocolo de limpeza..." });
 
     try {
       const db = getFirestore();
 
-      // 1. Limpar Coleções existentes para evitar duplicatas
-      setMsg({ type: "", text: "Limpando banco de dados..." });
-
-      const deleteCollection = async (coll) => {
-        const batch = writeBatch(db); // Create a new batch for deletion
+      // Funcao auxiliar para deletar em lotes e reportar progresso
+      const deleteCollectionSafe = async (coll) => {
+        setMsg({ type: "info", text: `Lendo coleção ${coll}...` });
         const q = await getDocs(collection(db, coll));
-        q.docs.forEach((d) => batch.delete(d.ref));
-        await batch.commit();
+        const docs = q.docs;
+        const total = docs.length;
+
+        if (total === 0) {
+          setMsg({ type: "info", text: `Coleção ${coll} já estava vazia.` });
+          return;
+        }
+
+        setMsg({
+          type: "info",
+          text: `Encontrados ${total} itens em ${coll}. Exterminando... 🗑️`,
+        });
+
+        const chunk = 400;
+        let deletedCount = 0;
+
+        for (let i = 0; i < total; i += chunk) {
+          const batch = writeBatch(db);
+          const currentChunk = docs.slice(i, i + chunk);
+
+          currentChunk.forEach((d) => batch.delete(d.ref));
+
+          await batch.commit();
+          deletedCount += currentChunk.length;
+          setMsg({
+            type: "info",
+            text: `Deletados ${deletedCount}/${total} de ${coll}...`,
+          });
+        }
+        setMsg({ type: "success", text: `Coleção ${coll} limpa com sucesso!` });
       };
 
-      await deleteCollection("entities");
-      await deleteCollection("verses");
+      // 1. Limpeza
+      await deleteCollectionSafe("entities");
+      await deleteCollectionSafe("verses");
 
-      // 2. Inserir Novos Dados
-      setMsg({ type: "", text: "Inserindo novas entidades..." });
-      const batch = writeBatch(db);
+      // 2. Verificação de Segurança (Nuclear Check)
+      // Garantir que não sobrou nada "zumbi"
+      setMsg({ type: "info", text: "Verificando se sobrou algum zumbi... 🧟" });
+      const checkQ = await getDocs(collection(db, "entities"));
+      if (!checkQ.empty) {
+        throw new Error(
+          "A limpeza falhou! Ainda existem itens no banco. Tente novamente."
+        );
+      }
 
-      KNOWLEDGE_BASE.entities.forEach((ent) => {
-        const docRef = doc(db, "entities", ent.id);
-        batch.set(docRef, ent);
+      // 3. Inserção
+      setMsg({
+        type: "info",
+        text: "Banco limpo! Inserindo nova inteligência... 🧠",
       });
 
-      // Não precisamos mais de 'verses' hardcoded se vamos usar a API,
-      // mas se houver alguns 'curados' na KB, podemos manter.
-      if (KNOWLEDGE_BASE.verses) {
-        KNOWLEDGE_BASE.verses.forEach((ver) => {
-          const docRef = doc(db, "verses", ver.id);
-          batch.set(docRef, ver);
+      const entities = KNOWLEDGE_BASE.entities;
+      const totalEnt = entities.length;
+      const chunk = 350; // Margem de segurança menor
+
+      for (let i = 0; i < totalEnt; i += chunk) {
+        const batch = writeBatch(db);
+        const currentChunk = entities.slice(i, i + chunk);
+
+        currentChunk.forEach((ent) => {
+          const docRef = doc(db, "entities", ent.id);
+          batch.set(docRef, ent);
+        });
+
+        await batch.commit();
+        setMsg({
+          type: "info",
+          text: `Inserindo entidades: ${Math.min(
+            i + chunk,
+            totalEnt
+          )}/${totalEnt}`,
         });
       }
 
-      await batch.commit();
+      // Verses
+      if (KNOWLEDGE_BASE.verses && KNOWLEDGE_BASE.verses.length > 0) {
+        const verses = KNOWLEDGE_BASE.verses;
+        const totalVer = verses.length;
+        setMsg({ type: "info", text: "Inserindo versículos curados..." });
+
+        for (let i = 0; i < totalVer; i += chunk) {
+          const batch = writeBatch(db);
+          const currentChunk = verses.slice(i, i + chunk);
+          currentChunk.forEach((ver) => {
+            const docRef = doc(db, "verses", ver.id);
+            batch.set(docRef, ver);
+          });
+          await batch.commit();
+          setMsg({
+            type: "info",
+            text: `Inserindo versículos: ${Math.min(
+              i + chunk,
+              totalVer
+            )}/${totalVer}`,
+          });
+        }
+      }
+
       setMsg({
         type: "success",
-        text: "Banco resetado e atualizado com sucesso!",
+        text: "SUCESSO TOTA! 🎉 Banco de Dados 100% Sincronizado e Limpo.",
       });
     } catch (error) {
       console.error(error);
-      setMsg({ type: "error", text: "Erro: " + error.message });
+      setMsg({ type: "error", text: "Erro Crítico: " + error.message });
     } finally {
       setLoading(false);
     }
@@ -125,7 +196,9 @@ export default function AdminPanel({ onBack }) {
           <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-amber-500">
             <ShieldCheck size={20} />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">Painel Admin</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            Painel Admin v2.0 (Limpeza Profunda)
+          </h2>
         </div>
 
         <p className="text-sm text-slate-500 mb-6">

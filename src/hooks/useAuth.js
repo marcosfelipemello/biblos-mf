@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signInAnonymously,
   signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 
 export function useAuth() {
@@ -52,6 +54,18 @@ export function useAuth() {
     }
   };
 
+  const loginWithGoogle = async () => {
+    setError(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error("Google Login Error:", err);
+      setError(err);
+      throw err;
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -76,6 +90,7 @@ export function useAuth() {
     loading,
     error,
     login,
+    loginWithGoogle,
     loginAnonymously,
     register,
     logout,

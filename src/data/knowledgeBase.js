@@ -308,7 +308,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Patriarca",
       origin_ref: "Gênesis 30:24",
-      search_term: "José",
+      search_term:
+        "regex:(?<!\\p{L})José(?!\\p{L})(?=.*(?:Egito|Faraó|sonhos|irmãos|túnica|cisterna|Potifar|Jacó))(?!.*(?:Maria|carpinteiro|Jesus|Noivo))",
       description:
         "Filho de Jacó, vendido pelos irmãos, tornou-se governador do Egito.",
       related: ["Jacó", "Benjamim", "Faraó"],
@@ -377,6 +378,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Rei",
       origin_ref: "1 Samuel 9:2",
+      search_term:
+        "regex:(?<!\\p{L})Saul(?!\\p{L})(?=.*(?:Samuel|Jônatas|Davi|Rei|Israel|Benjamim|ameaçou))",
       description: "Primeiro rei de Israel. Opressor de Davi.",
       related: ["Samuel", "Jônatas", "Davi"],
     },
@@ -480,7 +483,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Pai Terreno",
       origin_ref: "Mateus 1:16",
-      search_term: "José",
+      search_term:
+        "regex:(?<!\\p{L})José(?!\\p{L})(?=(?:.*(?:Maria|Jesus|carpinteiro|nascimento|Egito|sonho|anjo|pai|esposo)))(?!.*(?:Arimatéia|Jacó|Faraó|túnica|cisterna|governador))",
       description: "Carpinteiro de Nazaré, esposo de Maria.",
       related: ["Maria (Mãe)", "Jesus"],
     },
@@ -490,6 +494,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Mãe",
       origin_ref: "Lucas 1:27",
+      search_term:
+        "regex:(?<!\\p{L})Maria(?!\\p{L})(?!.*(?:Madalena|Betânia|Clopas|irmã de Lázaro))",
       description: "Mãe de Jesus, bendita entre as mulheres.",
       related: ["Jesus", "José", "Isabel"],
     },
@@ -499,6 +505,9 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Profeta",
       origin_ref: "Lucas 1:13",
+      // Matches "João" AND context keywords for Baptist (Batista, Zacarias, Desert, Jordan, Baptism)
+      search_term:
+        "regex:(?=.*Jo[ãaáàâ]o)(?=.*(Batista|Zacarias|deserto|Jordão|batizava|gafanhotos|profeta|Herodes)).*",
       description: "Precursor de Cristo, voz que clama no deserto.",
       related: ["Jesus", "Isabel"],
     },
@@ -517,15 +526,13 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Discípulo",
       origin_ref: "Mateus 4:21",
-      description: "O discípulo amado, autor de Evangelho e Apocalipse.",
-      related: ["Jesus", "Pedro", "Tiago"],
-    },
-    {
       id: "nt6",
       name: "Tiago (Maior)",
       type: "person",
       category: "Apóstolo",
       origin_ref: "Mateus 4:21",
+      search_term:
+        "regex:(?<!\\p{L})Tiago(?!\\p{L})(?=.*(?:Zebedeu|João|pescador|Boanerges))",
       description: "Filho de Zebedeu, primeiro apóstolo mártir.",
       related: ["João (Apóstolo)", "Jesus"],
     },
@@ -535,6 +542,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Traidor",
       origin_ref: "Mateus 10:4",
+      search_term:
+        "regex:Judas\\s*Iscariotes|(?<!\\p{L})Judas(?!\\p{L})(?=.*(?:traidor|traiu|entregou|beijo|moedas|campo de sangue|enforcou))",
       description: "O apóstolo que traiu Jesus.",
       related: ["Jesus"],
     },
@@ -544,6 +553,7 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Seguidora",
       origin_ref: "Lucas 8:2",
+      search_term: "regex:Maria\\s*Madalena",
       description: "Seguidora fiel, primeira a ver o Cristo ressurreto.",
       related: ["Jesus"],
     },
@@ -553,6 +563,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Seguidor",
       origin_ref: "João 11:1",
+      search_term:
+        "regex:(?<!\\p{L})Lázaro(?!\\p{L})(?=.*(?:Marta|Maria|Jesus|ressuscitou|túmulo|quatro dias))",
       description: "Amigo de Jesus, ressuscitado após quatro dias morto.",
       related: ["Jesus", "Marta", "Maria (Betânia)"],
     },
@@ -617,6 +629,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Apóstolo",
       origin_ref: "João 1:43",
+      search_term:
+        "regex:(?<!\\p{L})Filipe(?!\\p{L})(?=.*(?:Jesus|Natanael|Betsaida|André|grego|pão))",
       description: "De Betsaida, levou Natanael a Jesus.",
       related: ["Jesus", "Natanael"],
     },
@@ -654,6 +668,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Apóstolo",
       origin_ref: "Mateus 10:3",
+      search_term:
+        "regex:Tiago\\s+(?:filho\\s+de\\s+)?Alfeu|(?<!\\p{L})Tiago(?!\\p{L})(?=.*(?:Menor))",
       description: "Um dos doze apóstolos.",
       related: ["Jesus"],
     },
@@ -663,7 +679,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Apóstolo",
       origin_ref: "Mateus 10:3",
-      search_term: "Tadeu",
+      search_term:
+        "regex:(?<!\\p{L})(?:Judas\\s+)?Tadeu|(?<!\\p{L})Judas(?!\\p{L})(?=.*(?:irmão de Tiago|Lebeu))(?!.*(?:Iscariotes|traidor))",
       description:
         "Também chamado de Lebeu ou Tadeu, autor da epístola de Judas.",
       related: ["Jesus"],
@@ -674,6 +691,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Apóstolo",
       origin_ref: "Mateus 10:4",
+      search_term:
+        "regex:Simão\\s+(?:o\\s+)?Zelote|(?<!\\p{L})Simão(?=.*(?:Cananeu|Zelote))",
       description: "Pertencia ao partido dos zelotes antes de seguir a Cristo.",
       related: ["Jesus"],
     },
@@ -1021,6 +1040,8 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Seguidora",
       origin_ref: "Lucas 10:39",
+      search_term:
+        "regex:(?<!\\p{L})Maria(?!p{L})(?=.*(?:Lázaro|Marta|Betânia|perfume|pés|ungiu|irmã))",
       description: "Irmã de Lázaro, escolheu a boa parte aos pés de Jesus.",
       related: ["Jesus", "Lázaro", "Marta"],
     },

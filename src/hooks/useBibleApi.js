@@ -36,36 +36,41 @@ export const useBibleApi = () => {
         return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       };
 
-      // Helper to create accent-insensitive regex pattern
-      const createFlexibleRegex = (input) => {
-        const charMap = {
-          a: "[aáàâãäå]",
-          e: "[eéèêë]",
-          i: "[iíìîï]",
-          o: "[oóòôõö]",
-          u: "[uúùûü]",
-          c: "[cç]",
-          n: "[nñ]",
+      let pattern;
+      let regex;
+
+      // Check for advanced regex mode
+      if (term.startsWith("regex:")) {
+        // Extract pattern, preserving raw regex
+        const rawPattern = term.replace("regex:", "");
+        // Use exactly as provided (case insensitive + unicode)
+        regex = new RegExp(rawPattern, "iu");
+      } else {
+        // Original logic
+        const createFlexibleRegex = (input) => {
+          const charMap = {
+            a: "[aáàâãäå]",
+            e: "[eéèêë]",
+            i: "[iíìîï]",
+            o: "[oóòôõö]",
+            u: "[uúùûü]",
+            c: "[cç]",
+            n: "[nñ]",
+          };
+
+          return input
+            .toLowerCase()
+            .split("")
+            .map((char) => {
+              if (charMap[char]) return charMap[char];
+              return escapeRegExp(char);
+            })
+            .join("");
         };
 
-        return input
-          .toLowerCase()
-          .split("")
-          .map((char) => {
-            if (charMap[char]) return charMap[char];
-            return escapeRegExp(char);
-          })
-          .join("");
-      };
-
-      const pattern = createFlexibleRegex(term);
-
-      // Regex explanation:
-      // (?<!\p{L}) -> Negative Lookbehind (Start of word)
-      // pattern -> Accent-flexible term components
-      // (?!\p{L}) -> Negative Lookahead (End of word)
-      // 'iu' -> Case Insensitive + Unicode
-      const regex = new RegExp(`(?<!\\p{L})${pattern}(?!\\p{L})`, "iu");
+        pattern = createFlexibleRegex(term);
+        regex = new RegExp(`(?<!\\p{L})${pattern}(?!\\p{L})`, "iu");
+      }
 
       // Iterate through the local Bible data
       BIBLE_DATA.forEach((book) => {
