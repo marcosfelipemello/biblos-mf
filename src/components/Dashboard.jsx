@@ -8,6 +8,7 @@ import ExitConfirmation from "./ExitConfirmation";
 import BibleReader from "./BibleReader";
 import Atlas from "./Atlas";
 import Devotionals from "./Devotionals";
+import Hymnal from "./Hymnal";
 import BiblosChat from "./BiblosChat"; // Import Added
 import { useBibleApi } from "../hooks/useBibleApi";
 import {
@@ -21,6 +22,7 @@ import {
   LayoutGrid,
   Sparkles,
   LogOut,
+  Music,
   Shield,
   ExternalLink,
   BookHeart, // Icon for Devotional
@@ -33,7 +35,7 @@ export default function Dashboard() {
   const { entities, status, fetchVerses, errorMsg } = useBiblosData();
 
   // Refactored State for "Neutral Gear"
-  // view can be: 'neutral', 'atlas', 'bible', 'devotionals', 'results', 'details', 'admin'
+  // view can be: 'neutral', 'atlas', 'bible', 'devotionals', 'hymnal', 'results', 'details', 'admin'
   const [view, setView] = useState("neutral");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(null);
@@ -62,10 +64,12 @@ export default function Dashboard() {
   const atlasRef = React.useRef(null);
   const bibleRef = React.useRef(null);
   const devotionalRef = React.useRef(null);
+  const hymnalRef = React.useRef(null);
 
   const [atlasLenis, setAtlasLenis] = useState(null);
   const [bibleLenis, setBibleLenis] = useState(null);
   const [devotionalLenis, setDevotionalLenis] = useState(null);
+  const [hymnalLenis, setHymnalLenis] = useState(null);
 
   // Initialize Lenis for Atlas
   useEffect(() => {
@@ -121,17 +125,36 @@ export default function Dashboard() {
     return () => lenisInstance.destroy();
   }, []);
 
+  // Initialize Lenis for Hymnal
+  useEffect(() => {
+    if (!hymnalRef.current) return;
+    const lenisInstance = new Lenis({
+      wrapper: hymnalRef.current,
+      content: hymnalRef.current.firstElementChild,
+      duration: 1.5,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1.2,
+      touchMultiplier: 2.5,
+    });
+    setHymnalLenis(lenisInstance);
+    return () => lenisInstance.destroy();
+  }, []);
+
   // Unified RAF
   useEffect(() => {
     function raf(time) {
       if (atlasLenis) atlasLenis.raf(time);
       if (bibleLenis) bibleLenis.raf(time);
       if (devotionalLenis) devotionalLenis.raf(time);
+      if (hymnalLenis) hymnalLenis.raf(time);
       requestAnimationFrame(raf);
     }
     const frameId = requestAnimationFrame(raf);
     return () => cancelAnimationFrame(frameId);
-  }, [atlasLenis, bibleLenis, devotionalLenis]);
+  }, [atlasLenis, bibleLenis, devotionalLenis, hymnalLenis]);
 
   const selectEntity = async (entity) => {
     setPreviousView(view);
@@ -204,6 +227,27 @@ export default function Dashboard() {
     bibleLenis.on("scroll", onScroll);
     return () => bibleLenis.off("scroll", onScroll);
   }, [bibleLenis, view, isHeaderVisible]);
+
+  // Scroll Detection for Hymnal (Immersive Mode)
+  useEffect(() => {
+    if (!hymnalLenis) return;
+
+    const onScroll = ({ velocity }) => {
+      if (view !== "hymnal") return;
+
+      const threshold = 1.2;
+      if (velocity > threshold && isHeaderVisible) {
+        setIsHeaderVisible(false);
+        setIsNavVisible(false);
+      } else if (velocity < -threshold && !isHeaderVisible) {
+        setIsHeaderVisible(true);
+        setIsNavVisible(true);
+      }
+    };
+
+    hymnalLenis.on("scroll", onScroll);
+    return () => hymnalLenis.off("scroll", onScroll);
+  }, [hymnalLenis, view, isHeaderVisible]);
 
   // --- RESTORED LOGIC ---
 
@@ -326,6 +370,7 @@ export default function Dashboard() {
   const isNeutral = view === "neutral";
   const isBibleView = view === "bible";
   const isDevotionalsView = view === "devotionals";
+  const isHymnalView = view === "hymnal";
   const isAtlasView =
     view === "atlas" || view === "results" || view === "details";
 
@@ -533,6 +578,18 @@ export default function Dashboard() {
         </div>
       </main>
 
+      {/* --- CONTAINER 4: HYMNAL --- */}
+      <main
+        ref={hymnalRef}
+        className={`flex-1 overflow-y-auto no-scrollbar relative z-10 px-4 pb-6 ${
+          !isHymnalView ? "hidden" : "block"
+        }`}
+      >
+        <div className="pb-32">
+          <Hymnal isHeaderVisible={isHeaderVisible} />
+        </div>
+      </main>
+
       {/* FADE INFERIOR */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none z-20 transition-opacity duration-500 ${
@@ -558,6 +615,20 @@ export default function Dashboard() {
             <BookOpen size={24} />
             <span className="text-[10px] font-bold uppercase tracking-wide">
               Bíblia
+            </span>
+          </button>
+
+          <button
+            onClick={() => setView("hymnal")}
+            className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-300 w-20 active:scale-95 ${
+              isHymnalView
+                ? "text-amber-600 bg-amber-50"
+                : "text-slate-400 hover:bg-slate-50"
+            }`}
+          >
+            <Music size={24} />
+            <span className="text-[10px] font-bold uppercase tracking-wide">
+              Hinário
             </span>
           </button>
 
