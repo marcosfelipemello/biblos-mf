@@ -217,53 +217,36 @@ export default function BibleReader({
 
   return (
     <div className="pb-20 animate-enter-view">
-      {/* READER HEADER - COMPACT */}
-      {/* READER HEADER - COMPACT / TINY MODE */}
+      {/* READER HEADER - FULL (visible when scrolled up) */}
       <div
-        className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center ${
+        className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-between bg-white/95 backdrop-blur border-b border-slate-100 py-2 px-3 shadow-sm mb-2 h-14 ${
           isHeaderVisible
-            ? "justify-between bg-white/95 backdrop-blur border-b border-slate-100 py-2 px-3 shadow-sm mb-2 h-14 translate-y-0"
-            : "justify-center bg-white border-b border-slate-50 py-1 mb-0 h-8 translate-y-0" // Tiny Mode: h-8 (32px), solid white background
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
         {/* PREV BUTTON */}
         <button
           onClick={handlePrev}
           disabled={chapter === 1}
-          className={`rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 overflow-hidden ${
-            isHeaderVisible ? "p-1.5 w-8 opacity-100" : "w-0 p-0 opacity-0"
-          }`}
+          className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
         >
           <ChevronLeft size={20} className="text-slate-600" />
         </button>
 
         {/* CENTER INFO */}
-        <div
-          className={`flex items-center transition-all duration-500 ${
-            isHeaderVisible ? "flex-col flex-1" : "flex-row gap-2"
-          }`}
-        >
+        <div className="flex items-center flex-col flex-1">
           <button
             onClick={() => setShowBookSelector(true)}
-            className={`flex items-center rounded-full transition-all group ${
-              isHeaderVisible
-                ? "gap-1.5 px-3 py-1 hover:bg-slate-50 border border-transparent hover:border-slate-200"
-                : "gap-1 px-0 py-0 hover:bg-transparent border-0"
-            }`}
+            className="flex items-center rounded-full transition-all group gap-1.5 px-3 py-1 hover:bg-slate-50 border border-transparent hover:border-slate-200"
           >
-            <span
-              className={`font-serif font-bold text-slate-800 group-hover:text-amber-700 leading-none transition-all duration-500 ${
-                isHeaderVisible ? "text-lg" : "text-xs"
-              }`}
-            >
+            <span className="font-serif font-bold text-slate-800 group-hover:text-amber-700 leading-none text-lg">
               {book}
             </span>
-            {isHeaderVisible && (
-              <Book
-                size={14}
-                className="text-slate-400 group-hover:text-amber-500"
-              />
-            )}
+            <Book
+              size={14}
+              className="text-slate-400 group-hover:text-amber-500"
+            />
           </button>
 
           <button
@@ -271,27 +254,36 @@ export default function BibleReader({
               setSelectionStep("chapter");
               setShowChapterSelector(true);
             }}
-            className={`font-bold text-amber-600 uppercase tracking-widest leading-none rounded transition-all duration-500 ${
-              isHeaderVisible
-                ? "text-[10px] mt-0.5 hover:bg-amber-50 px-2 py-0.5"
-                : "text-xs mt-0 hover:bg-transparent px-0 py-0 normal-case tracking-normal !text-slate-500" // Tiny Mode Style
-            }`}
+            className="font-bold text-amber-600 uppercase tracking-widest leading-none rounded text-[10px] mt-0.5 hover:bg-amber-50 px-2 py-0.5"
           >
-            <span className={!isHeaderVisible ? "hidden" : "inline"}>
-              CAPÍTULO{" "}
-            </span>
-            {chapter}
+            CAPÍTULO {chapter}
           </button>
         </div>
 
         {/* NEXT BUTTON */}
         <button
           onClick={handleNext}
-          className={`rounded-full hover:bg-slate-100 transition-all duration-500 overflow-hidden ${
-            isHeaderVisible ? "p-1.5 w-8 opacity-100" : "w-0 p-0 opacity-0"
-          }`}
+          className="rounded-full hover:bg-slate-100 transition-all duration-500 p-1.5 w-8"
         >
           <ChevronRight size={20} className="text-slate-600" />
+        </button>
+      </div>
+
+      {/* MINI HEADER - Book name only (visible when scrolled down) */}
+      <div
+        className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-center bg-white/95 backdrop-blur-sm border-b border-slate-100/50 h-8 ${
+          !isHeaderVisible
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <button
+          onClick={() => setShowBookSelector(true)}
+          className="px-3 py-0.5 rounded-full hover:bg-slate-50 transition-all"
+        >
+          <span className="font-serif font-bold text-slate-700 text-xs leading-none">
+            {book} {chapter}
+          </span>
         </button>
       </div>
 
