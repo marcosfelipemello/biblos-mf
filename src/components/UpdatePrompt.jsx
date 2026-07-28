@@ -1,59 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { RefreshCw, X } from "lucide-react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 export default function UpdatePrompt() {
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [registration, setRegistration] = useState(null);
+  const {
+    needRefresh: [showPrompt, setShowPrompt],
+    updateServiceWorker,
+  } = useRegisterSW();
 
-  useEffect(() => {
-    // Only run in production or if SW is supported
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      // Register Service Worker
-      navigator.serviceWorker.register("/sw.js").then((reg) => {
-        setRegistration(reg);
-
-        // Check if there's already a SW waiting
-        if (reg.waiting) {
-          setShowPrompt(true);
-        }
-
-        // Listen for new updates
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener("statechange", () => {
-            // Once the new worker is installed (waiting), show prompt
-            if (
-              newWorker.state === "installed" &&
-              navigator.serviceWorker.controller
-            ) {
-              setShowPrompt(true);
-            }
-          });
-        });
-      });
-
-      // Reload page when the new SW takes control
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
-    }
-  }, []);
-
-  const handleUpdate = () => {
-    if (registration && registration.waiting) {
-      // Send message to SW to skip waiting
-      registration.waiting.postMessage({ type: "SKIP_WAITING" });
-      // The controllerchange event will trigger reload
-    }
-  };
-
-  const handleClose = () => {
-    setShowPrompt(false);
-  };
+  const handleUpdate = () => updateServiceWorker(true);
+  const handleClose = () => setShowPrompt(false);
 
   if (!showPrompt) return null;
 
