@@ -6,7 +6,7 @@ import { BIBLE_CHAPTER_COUNTS } from "./src/data/bibleStructure.js";
 
 // bible.json tem BOM; o Vite lida com isso no import, o JSON.parse do Node não.
 const BIBLE = JSON.parse(
-  readFileSync("./src/data/bible.json", "utf8").replace(/^﻿/, "")
+  readFileSync("./src/data/bible.json", "utf8").replace(/^\uFEFF/, "")
 );
 const byName = Object.fromEntries(
   BIBLE.map((b) => [BOOK_NAMES[b.abbrev], b])

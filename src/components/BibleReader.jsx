@@ -96,7 +96,6 @@ export default function BibleReader({
   currentChapter,
   setCurrentChapter,
   scrollContainerRef,
-  initialScroll,
   targetVerse,
   setTargetVerse,
   onScrollComplete,

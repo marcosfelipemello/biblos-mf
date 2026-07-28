@@ -526,6 +526,10 @@ export const KNOWLEDGE_BASE = {
       type: "person",
       category: "Discípulo",
       origin_ref: "Mateus 4:21",
+      description: "Filho de Zebedeu, o discípulo amado.",
+      related: ["Jesus", "Tiago (Maior)", "Pedro"],
+    },
+    {
       id: "nt6",
       name: "Tiago (Maior)",
       type: "person",

@@ -14,17 +14,11 @@ import { useBibleApi } from "../hooks/useBibleApi";
 import {
   Search,
   BookOpen,
-  User,
-  Tag,
   ArrowLeft,
-  ChevronRight,
-  Bookmark,
   LayoutGrid,
-  Sparkles,
   LogOut,
   Music,
   Shield,
-  ExternalLink,
   BookHeart, // Icon for Devotional
 } from "lucide-react";
 import Logo from "./Logo";
@@ -32,7 +26,7 @@ import Lenis from "lenis";
 
 export default function Dashboard() {
   const { user, isAdmin, logout } = useAuth();
-  const { entities, status, fetchVerses, errorMsg } = useBiblosData();
+  const { entities, status, errorMsg } = useBiblosData();
 
   // Refactored State for "Neutral Gear"
   // view can be: 'neutral', 'atlas', 'bible', 'devotionals', 'hymnal', 'results', 'details', 'admin'
@@ -49,9 +43,6 @@ export default function Dashboard() {
   });
   const [readerChapter, setReaderChapter] = useState(() => {
     return parseInt(localStorage.getItem("biblo_chapter")) || 1;
-  });
-  const [bibleScrollY, setBibleScrollY] = useState(() => {
-    return parseInt(localStorage.getItem("biblo_scrollY")) || 0;
   });
   const [targetVerse, setTargetVerse] = useState(null);
 
@@ -167,10 +158,6 @@ export default function Dashboard() {
     localStorage.setItem("biblo_chapter", readerChapter.toString());
   }, [readerBook, readerChapter]);
 
-  useEffect(() => {
-    localStorage.setItem("biblo_scrollY", bibleScrollY.toString());
-  }, [bibleScrollY]);
-
   // RESET HEADER & NAV when switching tabs
   // (Because Devotionals component stays mounted but hidden/inactive)
   useEffect(() => {
@@ -180,11 +167,38 @@ export default function Dashboard() {
     }
   }, [view]);
 
+  const goBack = () => {
+    if (view === "details") {
+      if (previousView === "bible") {
+        setView("bible");
+      } else if (previousView === "devotionals") {
+        setView("devotionals");
+      } else if (searchTerm.length > 0 || categoryFilter) {
+        setView("results");
+      } else {
+        setView("atlas");
+      }
+
+      setTimeout(() => {
+        setSelectedEntity(null);
+        setPreviousView(null);
+      }, 300);
+    } else if (view === "admin") {
+      setView("neutral");
+    } else if (view === "results") {
+      setView("atlas");
+      setSearchTerm("");
+      setCategoryFilter(null);
+    } else {
+      setView("neutral");
+    }
+  };
+
   // EXIT CONFIRMATION LOGIC
   useEffect(() => {
     window.history.pushState(null, document.title, window.location.href);
 
-    const handlePopState = (event) => {
+    const handlePopState = () => {
       // If in neutral, confirm exit
       if (view === "neutral" && !showExitConfirm) {
         window.history.pushState(null, document.title, window.location.href);
@@ -268,8 +282,6 @@ export default function Dashboard() {
         setReaderBook(bookPart);
         setReaderChapter(chapter);
         if (verse) setTargetVerse(verse);
-
-        setBibleScrollY(0);
         setView("bible");
       }
     } catch (e) {
@@ -332,34 +344,7 @@ export default function Dashboard() {
     }
   };
 
-  const { searchVerses, loading: apiLoading } = useBibleApi();
-
-  const goBack = () => {
-    if (view === "details") {
-      if (previousView === "bible") {
-        setView("bible");
-      } else if (previousView === "devotionals") {
-        setView("devotionals");
-      } else if (searchTerm.length > 0 || categoryFilter) {
-        setView("results");
-      } else {
-        setView("atlas");
-      }
-
-      setTimeout(() => {
-        setSelectedEntity(null);
-        setPreviousView(null);
-      }, 300);
-    } else if (view === "admin") {
-      setView("neutral");
-    } else if (view === "results") {
-      setView("atlas");
-      setSearchTerm("");
-      setCategoryFilter(null);
-    } else {
-      setView("neutral");
-    }
-  };
+  const { searchVerses } = useBibleApi();
 
   if (view === "admin") {
     return <AdminPanel onBack={goBack} />;
@@ -525,7 +510,6 @@ export default function Dashboard() {
             setSearchTerm={setSearchTerm}
             selectedEntity={selectedEntity}
             selectEntity={selectEntity}
-            user={user}
             status={status}
             searchVerses={searchVerses}
             goToBibleReference={goToBibleReference}
@@ -549,7 +533,6 @@ export default function Dashboard() {
             currentChapter={readerChapter}
             setCurrentChapter={setReaderChapter}
             scrollContainerRef={bibleRef}
-            initialScroll={bibleScrollY}
             targetVerse={targetVerse}
             setTargetVerse={setTargetVerse}
             onScrollComplete={() => setTargetVerse(null)}

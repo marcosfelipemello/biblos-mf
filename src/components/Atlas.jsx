@@ -24,7 +24,6 @@ export default function Atlas({
   setSearchTerm,
   selectedEntity,
   selectEntity,
-  user,
   status,
   searchVerses,
   goToBibleReference,

@@ -9,7 +9,6 @@ import {
   setDoc,
   deleteDoc,
   serverTimestamp,
-  getDocs,
 } from "firebase/firestore";
 
 export function useHighlights(user, book, chapter) {

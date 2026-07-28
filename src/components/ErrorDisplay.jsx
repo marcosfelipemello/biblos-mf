@@ -1,7 +1,7 @@
 import React from "react";
 import { AlertTriangle, RefreshCw, WifiOff } from "lucide-react";
 
-export default function ErrorDisplay({ message, onRetry, onDemo }) {
+export default function ErrorDisplay({ message, onRetry }) {
   return (
     <div className="mx-4 mt-4 bg-red-50 p-6 rounded-2xl border border-red-100 text-left animate-pop-in shadow-lg shadow-red-100/50">
       <h3 className="text-red-800 font-bold flex items-center gap-2 mb-2">
