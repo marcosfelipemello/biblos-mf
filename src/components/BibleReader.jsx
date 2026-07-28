@@ -8,7 +8,7 @@ import {
   Grid3X3,
   ListOrdered,
 } from "lucide-react";
-import { useBibleApi } from "../hooks/useBibleApi";
+import { useBibleApi, getVerseCount } from "../hooks/useBibleApi";
 import { useAuth } from "../hooks/useAuth";
 import { useHighlights } from "../hooks/useHighlights";
 import SmartText from "./SmartText";
@@ -98,6 +98,7 @@ export default function BibleReader({
   scrollContainerRef,
   initialScroll,
   targetVerse,
+  setTargetVerse,
   onScrollComplete,
   lenis,
   isHeaderVisible = true,
@@ -111,6 +112,7 @@ export default function BibleReader({
   const [showChapterSelector, setShowChapterSelector] = useState(false);
   const [selectionStep, setSelectionStep] = useState("chapter"); // 'chapter' | 'verse'
   const [tempSelectedChapter, setTempSelectedChapter] = useState(null);
+  const [verseCount, setVerseCount] = useState(0);
 
   // Highlighting Hook
   const { isHighlighted, toggleHighlight } = useHighlights(
@@ -199,7 +201,23 @@ export default function BibleReader({
     }
   }, [loading, verses, targetVerse, onScrollComplete, book, chapter, lenis]);
 
+  const lastChapter = BIBLE_CHAPTER_COUNTS[book] || Infinity;
+  const isLastChapter = chapter >= lastChapter;
+
+  // Load the real verse count when the selector reaches the verse step
+  useEffect(() => {
+    if (selectionStep !== "verse" || !tempSelectedChapter) return;
+    let active = true;
+    getVerseCount(book, tempSelectedChapter).then((n) => {
+      if (active) setVerseCount(n);
+    });
+    return () => {
+      active = false;
+    };
+  }, [selectionStep, tempSelectedChapter, book]);
+
   const handleNext = () => {
+    if (isLastChapter) return;
     setCurrentChapter((prev) => prev + 1);
   };
 
@@ -263,7 +281,8 @@ export default function BibleReader({
         {/* NEXT BUTTON */}
         <button
           onClick={handleNext}
-          className="rounded-full hover:bg-slate-100 transition-all duration-500 p-1.5 w-8"
+          disabled={isLastChapter}
+          className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
         >
           <ChevronRight size={20} className="text-slate-600" />
         </button>
@@ -344,67 +363,21 @@ export default function BibleReader({
                 </div>
               ) : (
                 <div className="grid grid-cols-5 gap-3">
-                  {/* Verses Grid - defaulting to 176 for Psalms or 80 for others as safe max */}
-                  {Array.from(
-                    {
-                      length:
-                        book === "Salmos" && tempSelectedChapter === 119
-                          ? 176
-                          : 80,
-                    },
-                    (_, i) => i + 1
-                  ).map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => {
-                        setCurrentChapter(tempSelectedChapter);
-                        // Use setTargetVerse to scroll specific verse
-                        // Assuming parent component passes a setter or handles it via props
-                        // But here we use onScrollComplete or similar?
-                        // Actually BibleReader has targetVerse prop. We need to set it via parent?
-                        // Wait, BibleReader receives 'targetVerse' as PROP.
-                        // We can't set it from here easily unless we have a setter?
-                        // The 'targetVerse' prop implementation suggests parent controls it?
-                        // Actually, looking at the code `currentChapter` is a prop with setter `setCurrentChapter`.
-                        // `targetVerse` is a prop but no setter is passed.
-                        // BUT, we have `setTargetVerse` in `Dashboard.jsx`.
-                        // We need to pass `setTargetVerse` to BibleReader to make this work.
-                        // For now, I will just set chapter.
-                        // UPDATE: The user asked to choose verse. I need to make it work.
-                        // Step 1: Just set chapter for now, but I'll add the callback logic if I can.
-                        // Actually, looking closely, `goToBibleReference` in Dashboard sets targetVerse.
-                        // I should probably add `onVerseSelect` prop to BibleReader or `setTargetVerse`.
-                        // For now, I'll assume we can't scroll to verse seamlessly without prop update.
-                        // I'll add a TODO or try to pass it if available.
-                        // Wait, I can't change Props in `replace_file_content` without changing Parent.
-                        // Changing parent is expensive.
-                        // HACK: I can manually scroll using DOM since we are inside the component.
-                        // `const verseEl = document.getElementById('verse-' + num); if(verseEl) verseEl.scrollIntoView...`
-                        // But that happens AFTER render.
-                        // So:
-                        setCurrentChapter(tempSelectedChapter);
-                        setShowChapterSelector(false);
-                        setTimeout(() => {
-                          const el = document.getElementById(`verse-${num}`);
-                          if (el) {
-                            el.scrollIntoView({
-                              behavior: "smooth",
-                              block: "center",
-                            });
-                            el.style.backgroundColor =
-                              "rgba(251, 191, 36, 0.3)";
-                            setTimeout(
-                              () => (el.style.backgroundColor = "transparent"),
-                              2000
-                            );
-                          }
-                        }, 800); // Wait for load
-                      }}
-                      className="aspect-square rounded-xl flex items-center justify-center font-medium text-sm bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors"
-                    >
-                      {num}
-                    </button>
-                  ))}
+                  {Array.from({ length: verseCount }, (_, i) => i + 1).map(
+                    (num) => (
+                      <button
+                        key={num}
+                        onClick={() => {
+                          setCurrentChapter(tempSelectedChapter);
+                          setTargetVerse(num);
+                          setShowChapterSelector(false);
+                        }}
+                        className="aspect-square rounded-xl flex items-center justify-center font-medium text-sm bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                      >
+                        {num}
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -524,14 +497,16 @@ export default function BibleReader({
               );
             })}
 
-            <div className="pt-8 pb-4 flex justify-center">
-              <button
-                onClick={handleNext}
-                className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all"
-              >
-                Próximo Capítulo
-              </button>
-            </div>
+            {!isLastChapter && (
+              <div className="pt-8 pb-4 flex justify-center">
+                <button
+                  onClick={handleNext}
+                  className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all"
+                >
+                  Próximo Capítulo
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

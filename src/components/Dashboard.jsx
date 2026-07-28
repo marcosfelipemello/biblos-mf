@@ -553,6 +553,7 @@ export default function Dashboard() {
             scrollContainerRef={bibleRef}
             initialScroll={bibleScrollY}
             targetVerse={targetVerse}
+            setTargetVerse={setTargetVerse}
             onScrollComplete={() => setTargetVerse(null)}
             lenis={bibleLenis}
             isHeaderVisible={isHeaderVisible}

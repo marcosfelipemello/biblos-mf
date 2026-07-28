@@ -12,6 +12,16 @@ const NAME_TO_ABBREV = Object.entries(BOOK_NAMES).reduce(
   {}
 );
 
+/**
+ * Number of verses in a chapter. Async so it survives bible.json becoming
+ * a dynamic import.
+ */
+export const getVerseCount = async (bookName, chapter) => {
+  const abbrev = NAME_TO_ABBREV[bookName?.toLowerCase()];
+  const bookData = abbrev && BIBLE_DATA.find((b) => b.abbrev === abbrev);
+  return bookData?.chapters[chapter - 1]?.length || 0;
+};
+
 export const useBibleApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
