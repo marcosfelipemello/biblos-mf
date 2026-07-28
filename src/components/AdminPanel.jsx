@@ -7,7 +7,6 @@ import {
   RefreshCw,
   ShieldX,
 } from "lucide-react";
-import { KNOWLEDGE_BASE } from "../data/knowledgeBase";
 import { useAuth } from "../hooks/useAuth";
 import { db } from "../config/firebase";
 
@@ -80,6 +79,9 @@ export default function AdminPanel({ onBack }) {
     setMsg({ type: "info", text: "Iniciando protocolo de limpeza..." });
 
     try {
+      // ~208 KB que só o admin usa: carrega sob demanda.
+      const { KNOWLEDGE_BASE } = await import("../data/knowledgeBase");
+
       // Funcao auxiliar para deletar em lotes e reportar progresso
       const deleteCollectionSafe = async (coll) => {
         setMsg({ type: "info", text: `Lendo coleção ${coll}...` });

@@ -487,6 +487,11 @@ export default function Dashboard() {
         </main>
       )}
 
+      {/* ponytail: os 4 containers ficam montados o tempo todo para manter as
+          instâncias do Lenis vivas, então o BibleReader pede o capítulo já no
+          load e puxa o chunk do bible.json logo de cara. Montar sob demanda
+          (React.lazy) exigiria refazer o setup do Lenis. */}
+
       {/* --- CONTAINER 1: ATLAS --- */}
       <main
         ref={atlasRef}

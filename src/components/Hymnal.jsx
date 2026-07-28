@@ -1,7 +1,22 @@
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, Search, Music, BookOpen } from "lucide-react";
-import { HARPA_CRISTA } from "../data/harpaCristaData";
-import { CANTOR_CRISTAO } from "../data/cantorCristaoData";
+
+// Os dois hinários somam ~880 KB. Ficam fora do bundle principal e são
+// carregados quando o usuário abre um deles. Contagens fixas porque a tela
+// de escolha precisa mostrá-las antes de carregar os dados.
+const HYMNBOOKS = {
+  harpa: {
+    name: "Harpa Cristã",
+    count: 640,
+    load: () => import("../data/harpaCristaData").then((m) => m.HARPA_CRISTA),
+  },
+  cantor: {
+    name: "Cantor Cristão",
+    count: 581,
+    load: () =>
+      import("../data/cantorCristaoData").then((m) => m.CANTOR_CRISTAO),
+  },
+};
 
 export default function Hymnal({ isHeaderVisible = true }) {
   // 'grid' | 'index' | 'reading'
@@ -9,10 +24,10 @@ export default function Hymnal({ isHeaderVisible = true }) {
   const [selectedHymnbook, setSelectedHymnbook] = useState(null); // 'harpa' | 'cantor'
   const [selectedHymn, setSelectedHymn] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [hymnData, setHymnData] = useState(null);
+  const [loadingHymns, setLoadingHymns] = useState(false);
 
-  const hymnData = selectedHymnbook === "harpa" ? HARPA_CRISTA : CANTOR_CRISTAO;
-  const hymnbookName =
-    selectedHymnbook === "harpa" ? "Harpa Cristã" : "Cantor Cristão";
+  const hymnbookName = HYMNBOOKS[selectedHymnbook]?.name ?? "";
 
   const filteredHymns = useMemo(() => {
     if (!hymnData || screen !== "index") return [];
@@ -25,10 +40,16 @@ export default function Hymnal({ isHeaderVisible = true }) {
     );
   }, [hymnData, searchTerm, screen]);
 
-  const goToIndex = (book) => {
+  const goToIndex = async (book) => {
     setSelectedHymnbook(book);
     setSearchTerm("");
     setScreen("index");
+    setLoadingHymns(true);
+    try {
+      setHymnData(await HYMNBOOKS[book].load());
+    } finally {
+      setLoadingHymns(false);
+    }
   };
 
   const goToHymn = (hymn) => {
@@ -43,6 +64,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
     } else if (screen === "index") {
       setSelectedHymnbook(null);
       setSearchTerm("");
+      setHymnData(null);
       setScreen("grid");
     }
   };
@@ -81,7 +103,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
                 Cantor Cristão
               </h3>
               <p className="text-sm text-slate-500">
-                {CANTOR_CRISTAO.length} hinos
+                {HYMNBOOKS.cantor.count} hinos
               </p>
             </div>
           </button>
@@ -100,7 +122,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
                 Harpa Cristã
               </h3>
               <p className="text-sm text-slate-500">
-                {HARPA_CRISTA.length} hinos
+                {HYMNBOOKS.harpa.count} hinos
               </p>
             </div>
           </button>
@@ -168,7 +190,13 @@ export default function Hymnal({ isHeaderVisible = true }) {
 
         {/* Hymn List */}
         <div className="px-4 max-w-2xl mx-auto mt-2">
-          {filteredHymns.length === 0 ? (
+          {loadingHymns ? (
+            <div className="space-y-2 animate-pulse mt-4">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div key={i} className="h-12 bg-slate-100 rounded-xl" />
+              ))}
+            </div>
+          ) : filteredHymns.length === 0 ? (
             <div className="text-center py-12 text-slate-400 text-sm">
               Nenhum hino encontrado
             </div>
