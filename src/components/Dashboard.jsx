@@ -31,7 +31,7 @@ import Logo from "./Logo";
 import Lenis from "lenis";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { entities, status, fetchVerses, errorMsg } = useBiblosData();
 
   // Refactored State for "Neutral Gear"
@@ -276,8 +276,6 @@ export default function Dashboard() {
       console.error("Failed to parse reference:", refString, e);
     }
   };
-
-  const isAdmin = user?.email === "marcosfelipemellosantana@gmail.com";
 
   const results = useMemo(() => {
     if (searchTerm.length >= 2) {

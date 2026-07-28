@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import {
@@ -17,7 +17,7 @@ import {
   ShieldX,
 } from "lucide-react";
 import { KNOWLEDGE_BASE } from "../data/knowledgeBase";
-import { auth as mainAuth } from "../config/firebase";
+import { useAuth } from "../hooks/useAuth";
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCG8j-KgPOLIVdTTCmiGtQA7VVT_5ysFM8",
@@ -30,32 +30,11 @@ const FIREBASE_CONFIG = {
 };
 
 export default function AdminPanel({ onBack }) {
+  const { isAdmin, loading: checkingAdmin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-
-  // Verificar se o usuário é admin
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const user = mainAuth.currentUser;
-        if (user) {
-          const idTokenResult = await user.getIdTokenResult();
-          setIsAdmin(!!idTokenResult.claims.admin);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar status de admin:", error);
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
 
   // Loading enquanto verifica permissões
   if (checkingAdmin) {

@@ -12,14 +12,25 @@ import {
 
 export function useAuth() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
-      (authUser) => {
+      async (authUser) => {
         setUser(authUser);
+
+        // Fonte única de verdade para admin: a custom claim do token.
+        try {
+          const token = await authUser?.getIdTokenResult();
+          setIsAdmin(!!token?.claims.admin);
+        } catch (err) {
+          console.error("Admin claim check failed:", err);
+          setIsAdmin(false);
+        }
+
         setLoading(false);
       },
       (err) => {
@@ -87,6 +98,7 @@ export function useAuth() {
 
   return {
     user,
+    isAdmin,
     loading,
     error,
     login,
