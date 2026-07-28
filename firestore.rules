@@ -51,8 +51,8 @@ service cloud.firestore {
       // Pedidos de oração
       match /prayers/{prayerId} {
         allow read: if isOwner(userId);
-        allow create: if isOwner(userId) && 
-                        request.resource.data.content.size() < 10000;
+        allow create: if isOwner(userId) &&
+                        request.resource.data.text.size() < 10000;
         allow update: if isOwner(userId);
         allow delete: if isOwner(userId);
       }
