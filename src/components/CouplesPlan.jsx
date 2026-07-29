@@ -14,27 +14,44 @@ import {
   HandHeart,
   Edit3,
   LogOut,
+  Sparkles,
 } from "lucide-react";
-import { loadDays, COUPLES_PLAN } from "../data/couplesPlan";
+import {
+  loadDay,
+  totalDays,
+  PHASES,
+  COUPLES_PLAN,
+} from "../data/couplesPlan";
 import { useCouple } from "../hooks/useCouple";
 import { usePrayers } from "../hooks/usePrayers";
 import { useJournal } from "../hooks/useJournal";
 
 export default function CouplesPlan({ user, onBack, goToBibleReference }) {
   const c = useCouple(user);
-  const [dias, setDias] = useState(null);
+  const total = totalDays();
+  const day = Math.min(c.couple?.currentDay || 1, total);
+  const [hoje, setHoje] = useState(null);
 
+  // Carrega só a fase que contém este dia, não o plano inteiro.
   useEffect(() => {
-    loadDays().then(setDias);
-  }, []);
+    if (!c.couple) return;
+    let atual = true;
+    loadDay(day).then((d) => atual && setHoje(d));
+    return () => {
+      atual = false;
+    };
+  }, [day, c.couple]);
 
-  if (c.loading || !dias) return <Splash />;
+  if (c.loading) return <Splash />;
   if (!c.couple) return <Onboarding onBack={onBack} {...c} />;
+  if (!hoje) return <Splash />;
 
   return (
     <DayView
       user={user}
-      dias={dias}
+      hoje={hoje}
+      day={day}
+      total={total}
       onBack={onBack}
       goToBibleReference={goToBibleReference}
       {...c}
@@ -173,7 +190,9 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
 // ======== O DIA ========
 function DayView({
   user,
-  dias,
+  hoje,
+  day,
+  total,
   couple,
   onBack,
   goToBibleReference,
@@ -185,14 +204,10 @@ function DayView({
   partnerName,
 }) {
   const [sent, setSent] = useState(null);
+  const [abertos, setAbertos] = useState(() => new Set());
+  const [verRoteiro, setVerRoteiro] = useState(false);
   const { addPrayer } = usePrayers(user);
   const { addEntry } = useJournal(user);
-
-  const [abertos, setAbertos] = useState(() => new Set());
-
-  const total = dias.length;
-  const day = Math.min(couple.currentDay || 1, dias.length);
-  const hoje = dias[day - 1];
 
   // Devocional e oração começam fechados para não entregar a interpretação
   // antes da leitura. A chave inclui o dia, então virar o dia fecha tudo de
@@ -211,7 +226,12 @@ function DayView({
   const doParceiro = partnerUid ? couple.completions?.[partnerUid] || [] : [];
   const euMarquei = minhas.includes(day);
   const parceiroMarcou = doParceiro.includes(day);
-  const pct = Math.round((minhas.length / total) * 100);
+
+  const fimDaFase = hoje.startDay + hoje.phase.dayCount - 1;
+  const concluidosNaFase = minhas.filter(
+    (d) => d >= hoje.startDay && d <= fimDaFase
+  ).length;
+  const pctFase = Math.round((concluidosNaFase / hoje.phase.dayCount) * 100);
 
   const enviarOracao = async () => {
     await addPrayer(hoje.prayer);
@@ -239,14 +259,17 @@ function DayView({
           >
             <ArrowLeft size={22} />
           </button>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold text-slate-800 truncate">
-              Plano para Casais
+          <button
+            onClick={() => setVerRoteiro(true)}
+            className="flex-1 min-w-0 text-left group"
+          >
+            <h2 className="text-base font-bold text-slate-800 truncate group-hover:text-rose-600 transition-colors">
+              {hoje.phase.title}
             </h2>
             <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
-              {hoje.phaseTitle}
+              Dia {hoje.dayInPhase} de {hoje.phase.dayCount} • ver roteiro
             </p>
-          </div>
+          </button>
           <button
             onClick={() => {
               if (window.confirm("Sair do plano do casal?")) leaveCouple();
@@ -258,18 +281,32 @@ function DayView({
           </button>
         </div>
 
+        {/* Progresso da fase em destaque; o geral fica discreto, senão
+            "dia 3 de 695" desanima antes de começar. */}
         <div className="mt-3">
           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-rose-500 rounded-full transition-all duration-500"
-              style={{ width: `${pct}%` }}
+              style={{ width: `${pctFase}%` }}
             />
           </div>
           <p className="text-[10px] text-slate-400 mt-1 font-medium">
-            {minhas.length} de {total} dias • {pct}%
+            {concluidosNaFase} de {hoje.phase.dayCount} dias nesta fase
+            <span className="text-slate-300">
+              {" "}
+              • {minhas.length}/{total} no total
+            </span>
           </p>
         </div>
       </div>
+
+      {verRoteiro && (
+        <Roteiro
+          atual={hoje.phaseIndex}
+          concluidos={minhas}
+          onClose={() => setVerRoteiro(false)}
+        />
+      )}
 
       <div className="p-6 pb-32">
         {/* Aguardando o par */}
@@ -303,7 +340,7 @@ function DayView({
           </span>
           <button
             onClick={() => goToDay(day + 1)}
-            disabled={day === dias.length}
+            disabled={day === total}
             className="p-2 rounded-full bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
           >
             <ChevronRight size={18} className="text-slate-600" />
@@ -383,9 +420,25 @@ function DayView({
           </button>
         </Collapsible>
 
+        {/* 4. AÇÃO — opcional, só nos dias que trazem uma proposta concreta */}
+        {hoje.action && (
+          <Collapsible
+            icon={<Sparkles size={16} className="text-emerald-500" />}
+            label="Ação de hoje"
+            open={estaAberto("acao")}
+            onToggle={() => alternar("acao")}
+          >
+            <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+              <p className="text-[15px] leading-relaxed text-emerald-900">
+                {hoje.action}
+              </p>
+            </div>
+          </Collapsible>
+        )}
+
         {/* Conclusão */}
         <button
-          onClick={() => completeDay(day, dias.length)}
+          onClick={() => completeDay(day, total)}
           disabled={euMarquei}
           className={`w-full py-4 rounded-2xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2 ${
             euMarquei
@@ -425,7 +478,7 @@ function DayView({
         {euMarquei && !parceiroMarcou && isPaired && (
           <button
             onClick={() => goToDay(day + 1)}
-            disabled={day === dias.length}
+            disabled={day === total}
             className="w-full mt-3 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 disabled:opacity-40"
           >
             Avançar mesmo assim →
@@ -443,6 +496,86 @@ function Section({ icon, label }) {
       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
         {label}
       </h3>
+    </div>
+  );
+}
+
+/** Roteiro das fases: onde o casal está e o que vem pela frente. */
+function Roteiro({ atual, concluidos, onClose }) {
+  const linhas = PHASES.map((p, i) => {
+    const de = PHASES.slice(0, i).reduce((n, x) => n + x.dayCount, 1);
+    const ate = de + p.dayCount - 1;
+    const feitos = concluidos.filter((d) => d >= de && d <= ate).length;
+    return { p, i, de, ate, feitos };
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-[110] bg-white overflow-y-auto animate-slide-up"
+      data-lenis-prevent
+    >
+      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 border-b border-slate-200/50">
+        <button
+          onClick={onClose}
+          className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
+        >
+          <ArrowLeft size={22} />
+        </button>
+        <h2 className="text-xl font-bold text-slate-800">A jornada</h2>
+      </div>
+
+      <div className="p-6 pb-32 space-y-3">
+        {linhas.map(({ p, i, de, ate, feitos }) => {
+          const pct = Math.round((feitos / p.dayCount) * 100);
+          const eAtual = i === atual;
+          return (
+            <div
+              key={p.id}
+              className={`rounded-2xl p-4 border transition-all ${
+                eAtual
+                  ? "bg-rose-50 border-rose-200 shadow-sm"
+                  : "bg-white border-slate-100"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                    pct === 100
+                      ? "bg-emerald-100 text-emerald-600"
+                      : eAtual
+                      ? "bg-rose-500 text-white"
+                      : "bg-slate-100 text-slate-400"
+                  }`}
+                >
+                  {pct === 100 ? <Check size={16} /> : i + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-slate-800 text-sm leading-tight">
+                    {p.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{p.subtitle}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300 mt-1">
+                    dias {de}–{ate}
+                  </p>
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-2">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        pct === 100 ? "bg-emerald-500" : "bg-rose-400"
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <p className="text-[11px] text-slate-400 text-center pt-6 leading-relaxed">
+          Novas fases são acrescentadas conforme o plano avança, até cobrir a
+          Bíblia inteira.
+        </p>
+      </div>
     </div>
   );
 }
