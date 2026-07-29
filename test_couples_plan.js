@@ -2,16 +2,19 @@
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { BOOK_NAMES } from "./src/data/bibleBookNames.js";
-import { PHASES, allDays, totalDays } from "./src/data/couplesPlan/index.js";
+import { loadDays } from "./src/data/couplesPlan/index.js";
 
 const BIBLE = JSON.parse(
-  readFileSync("./src/data/bible.json", "utf8").replace(/^﻿/, "")
+  readFileSync("./src/data/bible.json", "utf8").replace(/^\uFEFF/, "")
 );
 const byName = Object.fromEntries(BIBLE.map((b) => [BOOK_NAMES[b.abbrev], b]));
 
-const dias = allDays();
-assert.ok(PHASES.length >= 1, "nenhuma fase carregada");
-assert.strictEqual(dias.length, totalDays(), "totalDays não bate com allDays");
+const dias = await loadDays();
+assert.ok(dias.length > 0, "nenhuma fase carregada");
+
+// A promessa é memoizada: a segunda chamada tem que devolver o mesmo array,
+// senão cada tela remonta recarrega o conteúdo.
+assert.strictEqual(await loadDays(), dias, "loadDays não está memoizando");
 
 // 1. Numeração contínua de 1 em diante, atravessando as fases.
 assert.deepStrictEqual(
@@ -68,6 +71,7 @@ assert.deepStrictEqual(
   "Fase 1 não cobre Gênesis 1-50 na ordem"
 );
 
+const fases = new Set(dias.map((d) => d.phaseId));
 console.log(
-  `ok — ${PHASES.length} fase(s), ${dias.length} dias, ${capitulosUsados.length} capítulos, sem repetição nem furo`
+  `ok — ${fases.size} fase(s), ${dias.length} dias, ${capitulosUsados.length} capítulos, sem repetição nem furo`
 );

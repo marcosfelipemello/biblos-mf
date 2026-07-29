@@ -7,13 +7,25 @@ import {
   ChevronRight,
   BookOpen,
   RotateCcw,
+  Heart,
 } from "lucide-react";
 import { READING_PLANS, getPlan, buildSchedule } from "../data/readingPlans";
 import { useReadingPlan } from "../hooks/useReadingPlan";
+import CouplesPlan from "./CouplesPlan";
 
 export default function ReadingPlans({ user, onBack, goToBibleReference }) {
   const [selectedId, setSelectedId] = useState(null);
   const plans = useReadingPlan(user);
+
+  if (selectedId === "casais") {
+    return (
+      <CouplesPlan
+        user={user}
+        onBack={() => setSelectedId(null)}
+        goToBibleReference={goToBibleReference}
+      />
+    );
+  }
 
   if (selectedId) {
     return (
@@ -51,6 +63,33 @@ function Catalog({ progress, onOpen, onBack }) {
       </div>
 
       <div className="p-4 pb-32 space-y-3">
+        {/* Destaque: plano para casais */}
+        <button
+          onClick={() => onOpen("casais")}
+          className="w-full relative overflow-hidden bg-gradient-to-br from-rose-50 to-orange-50 p-5 rounded-3xl border border-rose-100 text-left active:scale-[0.98] hover:shadow-lg hover:shadow-rose-500/10 transition-all duration-300 group"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-rose-100/40 rounded-full blur-2xl -translate-y-8 translate-x-8" />
+          <div className="relative z-10 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Heart size={22} fill="currentColor" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-rose-500 text-white px-2 py-0.5 rounded-full">
+                A dois
+              </span>
+              <h3 className="font-bold text-slate-800 leading-tight mt-1.5">
+                Plano para Casais
+              </h3>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Leitura, devocional e oração para crescerem juntos.
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mt-1.5">
+                Contas separadas • progresso compartilhado
+              </p>
+            </div>
+          </div>
+        </button>
+
         {READING_PLANS.map((plan) => {
           const state = progress[plan.id];
           const pct = state

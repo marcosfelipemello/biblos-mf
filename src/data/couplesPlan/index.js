@@ -1,8 +1,6 @@
-import { FASE_1 } from "./fase1.js";
-
-// Acrescentar uma fase é uma linha aqui + o arquivo dela. Nenhum código de
-// tela muda: as fases são encadeadas e a numeração dos dias é contínua.
-export const PHASES = [FASE_1];
+// Metadado do plano fica leve e estático; o conteúdo das fases entra por
+// import dinâmico, como os hinários e o knowledgeBase. Com muitas fases o
+// texto passa de meio mega, e ele não pode pesar no bundle principal.
 
 export const COUPLES_PLAN = {
   id: "casais",
@@ -11,15 +9,30 @@ export const COUPLES_PLAN = {
   color: "bg-rose-100 text-rose-600",
 };
 
+// Acrescentar uma fase é uma linha aqui + o arquivo dela.
+const PHASE_LOADERS = [
+  () => import("./fase1.js").then((m) => m.FASE_1),
+];
+
+let cache;
+
 /** Todos os dias de todas as fases, renumerados de 1 em diante. */
-export function allDays() {
+export async function loadDays() {
+  if (cache) return cache;
+
+  const phases = await Promise.all(PHASE_LOADERS.map((load) => load()));
   const days = [];
-  for (const phase of PHASES) {
+  for (const phase of phases) {
     for (const d of phase.days) {
-      days.push({ ...d, day: days.length + 1, phaseId: phase.id, phaseTitle: phase.title });
+      days.push({
+        ...d,
+        day: days.length + 1,
+        phaseId: phase.id,
+        phaseTitle: phase.title,
+      });
     }
   }
+
+  cache = days;
   return days;
 }
-
-export const totalDays = () => PHASES.reduce((n, p) => n + p.days.length, 0);
