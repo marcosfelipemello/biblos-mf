@@ -1,61 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  writeBatch,
-  collection,
-  getDocs,
-} from "firebase/firestore";
+import React, { useState } from "react";
+import { doc, writeBatch, collection, getDocs } from "firebase/firestore";
 import {
   Database,
-  UserPlus,
   ArrowLeft,
   ShieldCheck,
   RefreshCw,
   ShieldX,
 } from "lucide-react";
-import { KNOWLEDGE_BASE } from "../data/knowledgeBase";
-import { auth as mainAuth } from "../config/firebase";
-
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCG8j-KgPOLIVdTTCmiGtQA7VVT_5ysFM8",
-  authDomain: "banco-de-dados---dho.firebaseapp.com",
-  projectId: "banco-de-dados---dho",
-  storageBucket: "banco-de-dados---dho.firebasestorage.app",
-  messagingSenderId: "688145715081",
-  appId: "1:688145715081:web:e17c953b50424da5a41b58",
-  measurementId: "G-N3SWSYDHM3",
-};
+import { useAuth } from "../hooks/useAuth";
+import { db } from "../config/firebase";
 
 export default function AdminPanel({ onBack }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { isAdmin, loading: checkingAdmin } = useAuth();
   const [msg, setMsg] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-
-  // Verificar se o usuário é admin
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const user = mainAuth.currentUser;
-        if (user) {
-          const idTokenResult = await user.getIdTokenResult();
-          setIsAdmin(!!idTokenResult.claims.admin);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar status de admin:", error);
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
 
   // Loading enquanto verifica permissões
   if (checkingAdmin) {
@@ -110,27 +68,6 @@ export default function AdminPanel({ onBack }) {
     );
   }
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMsg({ type: "", text: "" });
-
-    try {
-      const secondaryApp = initializeApp(FIREBASE_CONFIG, "SecondaryApp");
-      const secondaryAuth = getAuth(secondaryApp);
-      await createUserWithEmailAndPassword(secondaryAuth, email, password);
-
-      setMsg({ type: "success", text: "Usuário criado com sucesso!" });
-      setEmail("");
-      setPassword("");
-    } catch (error) {
-      console.error(error);
-      setMsg({ type: "error", text: "Erro: " + error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSeedData = async () => {
     if (
       !window.confirm(
@@ -142,7 +79,8 @@ export default function AdminPanel({ onBack }) {
     setMsg({ type: "info", text: "Iniciando protocolo de limpeza..." });
 
     try {
-      const db = getFirestore();
+      // ~208 KB que só o admin usa: carrega sob demanda.
+      const { KNOWLEDGE_BASE } = await import("../data/knowledgeBase");
 
       // Funcao auxiliar para deletar em lotes e reportar progresso
       const deleteCollectionSafe = async (coll) => {
@@ -278,10 +216,6 @@ export default function AdminPanel({ onBack }) {
           </h2>
         </div>
 
-        <p className="text-sm text-slate-500 mb-6">
-          Adicione novos membros à equipe de pesquisa.
-        </p>
-
         {/* SEÇÃO DE DADOS */}
         <div className="mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-100">
           <div className="flex items-center gap-2 mb-3 text-amber-900 font-bold">
@@ -308,62 +242,19 @@ export default function AdminPanel({ onBack }) {
           </button>
         </div>
 
-        <div className="h-px bg-slate-100 my-6"></div>
-
-        <form onSubmit={handleCreateUser} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-              Novo Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-              Senha Inicial
-            </label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 transition-colors"
-            />
-          </div>
-
-          {msg.text && (
-            <div
-              className={`text-xs p-3 rounded-lg border ${
-                msg.type === "success"
-                  ? "bg-green-50 text-green-700 border-green-100"
-                  : "bg-red-50 text-red-700 border-red-100"
-              }`}
-            >
-              {msg.text}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 active:scale-95 flex items-center justify-center gap-2"
+        {msg.text && (
+          <div
+            className={`text-xs p-3 rounded-lg border ${
+              msg.type === "success"
+                ? "bg-green-50 text-green-700 border-green-100"
+                : msg.type === "error"
+                ? "bg-red-50 text-red-700 border-red-100"
+                : "bg-slate-50 text-slate-600 border-slate-100"
+            }`}
           >
-            {loading ? (
-              "Criando..."
-            ) : (
-              <>
-                <UserPlus size={18} /> Criar Usuário
-              </>
-            )}
-          </button>
-        </form>
+            {msg.text}
+          </div>
+        )}
       </div>
     </div>
   );

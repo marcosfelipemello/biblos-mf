@@ -5,7 +5,6 @@ import { BookOpen, AlertCircle } from "lucide-react";
 export default function VerseDisplay({ reference, initialText }) {
   const { getVerseText, loading, error } = useBibleApi();
   const [text, setText] = useState(initialText || null);
-  const [fetched, setFetched] = useState(false);
 
   useEffect(() => {
     // Se não temos texto inicial (ou queremos garantir o texto completo da API)
@@ -16,10 +15,7 @@ export default function VerseDisplay({ reference, initialText }) {
       if (!reference) return;
 
       const apiText = await getVerseText(reference);
-      if (active && apiText) {
-        setText(apiText);
-        setFetched(true);
-      }
+      if (active && apiText) setText(apiText);
     };
 
     fetchText();

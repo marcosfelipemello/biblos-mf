@@ -21,12 +21,14 @@ import { useJournal } from "../hooks/useJournal";
 import { usePrayers } from "../hooks/usePrayers";
 import { useHighlights } from "../hooks/useHighlights";
 import { getDailyManna } from "../data/dailyManna";
+import ReadingPlans from "./ReadingPlans";
 
 export default function Devotionals({
   user,
   setIsHeaderVisible,
   setIsNavVisible,
   isActive,
+  goToBibleReference,
 }) {
   const { loginWithGoogle } = useAuth();
   const [activeFeature, setActiveFeature] = useState(null); // 'journal', 'prayers', 'favorites', 'manna', 'plan'
@@ -62,7 +64,13 @@ export default function Devotionals({
   if (activeFeature === "manna")
     return <MannaView onBack={() => setActiveFeature(null)} />;
   if (activeFeature === "plan")
-    return <ReadingPlanView onBack={() => setActiveFeature(null)} />;
+    return (
+      <ReadingPlans
+        user={user}
+        onBack={() => setActiveFeature(null)}
+        goToBibleReference={goToBibleReference}
+      />
+    );
 
   // --- MAIN GRID ---
   // Matched styling to Atlas.jsx: gap-3 px-3 and p-4 cards
@@ -76,8 +84,8 @@ export default function Devotionals({
     },
     {
       id: "plan",
-      title: "Plano de Leitura",
-      desc: "Sua meta anual.",
+      title: "Planos de Leitura",
+      desc: "Escolha o seu ritmo.",
       icon: Calendar,
       color: "bg-blue-100 text-blue-600",
     },
@@ -207,27 +215,6 @@ function MannaView({ onBack }) {
               "Tome um momento para meditar nesta palavra. Como ela se aplica ao seu dia hoje?"}
           </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// --- READING PLAN VIEW ---
-function ReadingPlanView({ onBack }) {
-  return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up">
-      <div className="flex items-center gap-3 p-6 mb-4 sticky top-0 bg-white z-10">
-        <button
-          onClick={onBack}
-          className="p-2 -ml-2 rounded-full hover:bg-slate-100"
-        >
-          <ArrowLeft />
-        </button>
-        <h2 className="text-2xl font-serif font-bold">Plano de Leitura</h2>
-      </div>
-      <div className="p-6 text-center text-slate-400 mt-20">
-        <Calendar size={48} className="mx-auto mb-4 opacity-20" />
-        <p>Em breve: Planos de leitura estruturados.</p>
       </div>
     </div>
   );

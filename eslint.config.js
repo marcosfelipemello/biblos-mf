@@ -26,4 +26,9 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Netlify Functions e scripts de conferência rodam no Node, não no browser.
+    files: ['netlify/**/*.js', '*.js', '*.cjs'],
+    languageOptions: { globals: globals.node },
+  },
 ])

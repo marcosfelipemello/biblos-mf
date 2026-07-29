@@ -1,6 +1,13 @@
 import { useState, useCallback } from "react";
-import BIBLE_DATA from "../data/bible.json";
 import { BOOK_NAMES } from "../data/bibleBookNames.js";
+
+// bible.json tem ~3,8 MB. Import dinâmico com a promise memoizada para ele
+// virar um chunk separado em vez de entrar no bundle principal.
+let biblePromise;
+const loadBible = () => {
+  biblePromise ??= import("../data/bible.json").then((m) => m.default);
+  return biblePromise;
+};
 
 // Create a reverse mapping for name -> abbreviation lookup
 const NAME_TO_ABBREV = Object.entries(BOOK_NAMES).reduce(
@@ -11,6 +18,18 @@ const NAME_TO_ABBREV = Object.entries(BOOK_NAMES).reduce(
   },
   {}
 );
+
+/**
+ * Number of verses in a chapter. Async so it survives bible.json becoming
+ * a dynamic import.
+ */
+export const getVerseCount = async (bookName, chapter) => {
+  const abbrev = NAME_TO_ABBREV[bookName?.toLowerCase()];
+  if (!abbrev) return 0;
+  const bible = await loadBible();
+  const bookData = bible.find((b) => b.abbrev === abbrev);
+  return bookData?.chapters[chapter - 1]?.length || 0;
+};
 
 export const useBibleApi = () => {
   const [loading, setLoading] = useState(false);
@@ -27,8 +46,7 @@ export const useBibleApi = () => {
     setError(null);
 
     try {
-      // Simulate async to not freeze UI immediately, though it's fast
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      const BIBLE_DATA = await loadBible();
 
       const results = [];
       // Helper to escape regex special characters
@@ -139,6 +157,7 @@ export const useBibleApi = () => {
         throw new Error(`Livro não encontrado na base: ${bookName}`);
       }
 
+      const BIBLE_DATA = await loadBible();
       const bookData = BIBLE_DATA.find((b) => b.abbrev === abbrev);
 
       if (!bookData) {
@@ -182,6 +201,7 @@ export const useBibleApi = () => {
       const abbrev = NAME_TO_ABBREV[bookName.toLowerCase()];
       if (!abbrev) throw new Error(`Livro não encontrado: ${bookName}`);
 
+      const BIBLE_DATA = await loadBible();
       const bookData = BIBLE_DATA.find((b) => b.abbrev === abbrev);
       if (!bookData) throw new Error(`Dados não encontrados para: ${abbrev}`);
 
