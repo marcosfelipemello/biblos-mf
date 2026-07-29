@@ -561,6 +561,7 @@ export default function Dashboard() {
             setIsHeaderVisible={setIsHeaderVisible}
             setIsNavVisible={setIsNavVisible}
             isActive={isDevotionalsView}
+            goToBibleReference={goToBibleReference}
           />
         </div>
       </main>
