@@ -75,10 +75,15 @@ export function useCouple(user) {
     let code;
     for (let i = 0; i < 5; i++) {
       const candidate = newCode();
-      const existing = await getDoc(doc(db, "couples", candidate));
-      if (!existing.exists()) {
-        code = candidate;
-        break;
+      try {
+        const existing = await getDoc(doc(db, "couples", candidate));
+        if (!existing.exists()) {
+          code = candidate;
+          break;
+        }
+      } catch {
+        // Leitura negada = já existe e está cheio. Tenta outro código.
+        continue;
       }
     }
     if (!code) {
@@ -102,7 +107,14 @@ export function useCouple(user) {
     setError(null);
     const code = rawCode.trim().toUpperCase();
 
-    const snap = await getDoc(doc(db, "couples", code));
+    let snap;
+    try {
+      snap = await getDoc(doc(db, "couples", code));
+    } catch {
+      // Regra nega em vez de dizer "não existe" — para quem digitou, é o mesmo.
+      setError("Código não encontrado. Confira as letras.");
+      return false;
+    }
     if (!snap.exists()) {
       setError("Código não encontrado. Confira as letras.");
       return false;
