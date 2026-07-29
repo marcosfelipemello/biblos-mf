@@ -9,15 +9,15 @@ service cloud.firestore {
     // Versículos da Bíblia - Leitura pública
     match /verses/{verseId} {
       allow read: if true; // Qualquer pessoa pode ler
-      allow write: if false; // Importação apenas via Admin SDK
+      allow write: if isAdmin(); // Seed pelo Painel Admin
     }
-    
+
     // Base de conhecimento (personagens, lugares, etc)
     match /entities/{entityId} {
       allow read: if true; // Qualquer pessoa pode ler
-      allow write: if false; // Importação apenas via Admin SDK
+      allow write: if isAdmin(); // Seed pelo Painel Admin
     }
-    
+
     // ========================================
     // DADOS PRIVADOS DOS USUÁRIOS
     // ========================================
