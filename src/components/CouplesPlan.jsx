@@ -5,6 +5,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   BookOpen,
   Copy,
   Users,
@@ -42,7 +44,7 @@ export default function CouplesPlan({ user, onBack, goToBibleReference }) {
 
 function Splash() {
   return (
-    <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center" data-lenis-prevent>
       <div className="w-10 h-10 border-4 border-slate-200 border-t-rose-500 rounded-full animate-spin" />
     </div>
   );
@@ -73,7 +75,7 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 z-10">
         <button
           onClick={onBack}
@@ -186,9 +188,24 @@ function DayView({
   const { addPrayer } = usePrayers(user);
   const { addEntry } = useJournal(user);
 
+  const [abertos, setAbertos] = useState(() => new Set());
+
   const total = dias.length;
   const day = Math.min(couple.currentDay || 1, dias.length);
   const hoje = dias[day - 1];
+
+  // Devocional e oração começam fechados para não entregar a interpretação
+  // antes da leitura. A chave inclui o dia, então virar o dia fecha tudo de
+  // novo sem precisar de efeito.
+  const estaAberto = (id) => abertos.has(`${day}-${id}`);
+  const alternar = (id) =>
+    setAbertos((prev) => {
+      const next = new Set(prev);
+      const key = `${day}-${id}`;
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   const minhas = couple.completions?.[user.uid] || [];
   const doParceiro = partnerUid ? couple.completions?.[partnerUid] || [] : [];
@@ -212,7 +229,7 @@ function DayView({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
       {/* Cabeçalho */}
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-200/50 z-10">
         <div className="flex items-center gap-3">
@@ -321,44 +338,50 @@ function DayView({
         </div>
 
         {/* 2. DEVOCIONAL */}
-        <Section
+        <Collapsible
           icon={<Heart size={16} className="text-rose-500" />}
           label="Devocional"
-        />
-        <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-3">
-          <p className="text-[15px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
-            {hoje.devotional}
-          </p>
-        </div>
-        <button
-          onClick={enviarDevocional}
-          className="w-full mb-8 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all"
+          open={estaAberto("devocional")}
+          onToggle={() => alternar("devocional")}
         >
-          <Edit3 size={14} />
-          {sent === "devocional"
-            ? "Salvo no Meu Devocional"
-            : "Escrever nossa reflexão"}
-        </button>
+          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-3">
+            <p className="text-[15px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
+              {hoje.devotional}
+            </p>
+          </div>
+          <button
+            onClick={enviarDevocional}
+            className="w-full py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all"
+          >
+            <Edit3 size={14} />
+            {sent === "devocional"
+              ? "Salvo no Meu Devocional"
+              : "Escrever nossa reflexão"}
+          </button>
+        </Collapsible>
 
         {/* 3. ORAÇÃO */}
-        <Section
+        <Collapsible
           icon={<HandHeart size={16} className="text-purple-500" />}
           label="Motivo de oração"
-        />
-        <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100 mb-3">
-          <p className="text-[15px] leading-relaxed text-purple-900 font-serif italic">
-            {hoje.prayer}
-          </p>
-        </div>
-        <button
-          onClick={enviarOracao}
-          className="w-full mb-8 py-3 rounded-xl border border-purple-200 bg-white text-purple-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all"
+          open={estaAberto("oracao")}
+          onToggle={() => alternar("oracao")}
         >
-          <HandHeart size={14} />
-          {sent === "oracao"
-            ? "Adicionado aos Motivos de Oração"
-            : "Adicionar aos meus motivos de oração"}
-        </button>
+          <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100 mb-3">
+            <p className="text-[15px] leading-relaxed text-purple-900 font-serif italic">
+              {hoje.prayer}
+            </p>
+          </div>
+          <button
+            onClick={enviarOracao}
+            className="w-full py-3 rounded-xl border border-purple-200 bg-white text-purple-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all"
+          >
+            <HandHeart size={14} />
+            {sent === "oracao"
+              ? "Adicionado aos Motivos de Oração"
+              : "Adicionar aos meus motivos de oração"}
+          </button>
+        </Collapsible>
 
         {/* Conclusão */}
         <button
@@ -420,6 +443,33 @@ function Section({ icon, label }) {
       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
         {label}
       </h3>
+    </div>
+  );
+}
+
+/** Fechado por padrão: a leitura vem primeiro, sem spoiler. */
+function Collapsible({ icon, label, open, onToggle, children }) {
+  return (
+    <div className="mb-8">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-2 mb-3 group"
+      >
+        {icon}
+        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">
+          {label}
+        </h3>
+        <span className="flex-1 h-px bg-slate-200/70" />
+        {open ? (
+          <ChevronUp size={16} className="text-slate-400" />
+        ) : (
+          <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 group-hover:text-slate-500 transition-colors">
+            abrir depois da leitura
+            <ChevronDown size={16} className="text-slate-400" />
+          </span>
+        )}
+      </button>
+      {open && <div className="animate-enter-view">{children}</div>}
     </div>
   );
 }

@@ -169,7 +169,7 @@ function MannaView({ onBack }) {
   const manna = getDailyManna();
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
       {/* HEADER */}
       <div className="flex items-center gap-3 p-6 mb-4 bg-white/50 backdrop-blur-md sticky top-0 z-10">
         <button
@@ -335,7 +335,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
   // WRITING MODE (Handwriting Style)
   if (isEditing) {
     return (
-      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-scale-up">
+      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-scale-up" data-lenis-prevent>
         {/* Notebook Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-200/60 bg-[#fdfbf7] z-10 sticky top-0">
           <button
@@ -419,7 +419,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
   // READING MODE (Full Screen Modal - now looks like Notebook)
   if (viewingEntry) {
     return (
-      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-enter-view">
+      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-enter-view" data-lenis-prevent>
         <div className="flex items-center gap-3 p-6 mb-0 border-b border-slate-200/50 bg-[#fdfbf7] z-10 sticky top-0">
           <button
             onClick={() => setViewingEntry(null)}
@@ -503,7 +503,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
   const groupedEntries = groupEntriesByMonth(entries);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-hidden flex flex-col animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-hidden flex flex-col animate-slide-up" data-lenis-prevent>
       {/* Sticky Header */}
       <div className="flex-none bg-white/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm z-20">
         <div className="flex items-center gap-3">
@@ -633,7 +633,7 @@ function FavoritesView({ user, onBack }) {
   const { highlights } = useHighlights(user); // Fetches ALL due to our hook update
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-right duration-300" data-lenis-prevent>
       <div className="min-h-full p-6 pb-24 max-w-md mx-auto">
         <Header title="Meus Favoritos" onBack={onBack} />
 
@@ -684,7 +684,7 @@ function PrayersView({ user, onBack }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-bottom duration-300" data-lenis-prevent>
       <div className="min-h-full p-6 pb-24 max-w-md mx-auto">
         <Header title="Motivos de Oração" onBack={onBack} />
 

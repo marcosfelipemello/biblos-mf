@@ -51,7 +51,7 @@ export default function ReadingPlans({ user, onBack, goToBibleReference }) {
 // ======== CATÁLOGO ========
 function Catalog({ progress, onOpen, onBack }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 border-b border-slate-200/50 z-10">
         <button
           onClick={onBack}
@@ -179,7 +179,7 @@ function PlanDetail({
   const pct = Math.round((completed.length / schedule.length) * 100);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-200/50 z-10">
         <div className="flex items-center gap-3">
           <button
@@ -294,7 +294,7 @@ function PlanIntro({ plan, schedule, onBack, onStart }) {
   const total = schedule.reduce((n, d) => n + d.readings.length, 0);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 z-10">
         <button
           onClick={onBack}
