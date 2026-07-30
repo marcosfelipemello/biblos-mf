@@ -113,6 +113,16 @@ export const PHASES = [
       noivos: () => import("./fase9-noivos.js").then((m) => m.FASE_9_NOIVOS),
     },
   },
+  {
+    id: "fase10-igreja-nasce",
+    title: "Fase 10 — A Igreja nasce",
+    subtitle: "Atos: a comunidade que cresceu doendo",
+    dayCount: 16,
+    load: () => import("./fase10.js").then((m) => m.FASE_10),
+    overrides: {
+      noivos: () => import("./fase10-noivos.js").then((m) => m.FASE_10_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
