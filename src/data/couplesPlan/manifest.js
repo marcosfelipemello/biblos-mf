@@ -143,6 +143,16 @@ export const PHASES = [
       noivos: () => import("./fase12-noivos.js").then((m) => m.FASE_12_NOIVOS),
     },
   },
+  {
+    id: "fase13-graca",
+    title: "Fase 13 — Graça",
+    subtitle: "Romanos e Gálatas: por que nada disso se compra",
+    dayCount: 13,
+    load: () => import("./fase13.js").then((m) => m.FASE_13),
+    overrides: {
+      noivos: () => import("./fase13-noivos.js").then((m) => m.FASE_13_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
