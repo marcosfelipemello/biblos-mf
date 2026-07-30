@@ -83,6 +83,16 @@ export const PHASES = [
       noivos: () => import("./fase6-noivos.js").then((m) => m.FASE_6_NOIVOS),
     },
   },
+  {
+    id: "fase7-rei-serve",
+    title: "Fase 7 — O Rei que serve",
+    subtitle: "Marcos: o Deus que veio para servir",
+    dayCount: 9,
+    load: () => import("./fase7.js").then((m) => m.FASE_7),
+    overrides: {
+      noivos: () => import("./fase7-noivos.js").then((m) => m.FASE_7_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>

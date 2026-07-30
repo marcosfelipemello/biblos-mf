@@ -175,6 +175,34 @@ casados.forEach((d, i) =>
   )
 );
 
+// 12. A trilha de noivos não pode falar com o leitor como se ele já fosse
+//     casado. É o erro que motivou as trilhas e o mais fácil de repetir: basta
+//     escrever uma fase nova e esquecer de listar um dia no override.
+//
+//     A lista é curta de propósito, só o que não tem defesa. "Nossa casa" ficou
+//     de fora: noivo fala da casa que vai formar o tempo todo, e o padrão
+//     reprovava texto correto. Já "cônjuge" não aparece em citação bíblica
+//     nenhuma — só existe na aplicação ao leitor, e para noivos está sempre
+//     errado.
+const SO_PARA_CASADOS = [
+  /\bc[ôo]njuges?\b/i,
+  /\bnossos filhos\b/i,
+  /\bdesde que casamos\b/i,
+  /\bquando (voc[êe]s )?casaram\b/i,
+];
+for (const [i, d] of noivos.entries()) {
+  const texto = `${d.theme} ${d.devotional} ${d.prayer} ${d.action || ""}`;
+  for (const padrao of SO_PARA_CASADOS) {
+    const achado = texto.match(padrao);
+    assert.ok(
+      !achado,
+      `dia ${i + 1} (${d.phase.id}, "${d.theme}"): a trilha de noivos diz "${
+        achado?.[0]
+      }" — falta esse dia no override da fase`
+    );
+  }
+}
+
 console.log(
   `ok — ${PHASES.length} fases, ${casados.length} dias, trilhas: ${Object.keys(
     TRACKS
