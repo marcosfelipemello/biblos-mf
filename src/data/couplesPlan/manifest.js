@@ -53,6 +53,16 @@ export const PHASES = [
       noivos: () => import("./fase3-noivos.js").then((m) => m.FASE_3_NOIVOS),
     },
   },
+  {
+    id: "fase4-dois",
+    title: "Fase 4 — Dois são melhores",
+    subtitle: "Eclesiastes e Rute: o vazio e a lealdade",
+    dayCount: 9,
+    load: (track) =>
+      track === "noivos"
+        ? import("./fase4-noivos.js").then((m) => m.FASE_4_NOIVOS)
+        : import("./fase4.js").then((m) => m.FASE_4),
+  },
 ];
 
 export const totalDays = () =>
