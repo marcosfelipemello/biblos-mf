@@ -121,7 +121,38 @@ for (const track of Object.keys(TRACKS)) {
   }
 }
 
-// 10. As trilhas têm de ser intercambiáveis dia a dia — completions guarda o
+// 10. Formato dos overrides. Um erro aqui não quebra nada em tempo de
+//     execução: o dia simplesmente continua com o texto de casados, e ninguém
+//     percebe até um casal de noivos ler "seu cônjuge" na tela.
+for (const p of PHASES) {
+  for (const [track, carregar] of Object.entries(p.overrides || {})) {
+    const patch = await carregar();
+    const base = await loadPhase(p.id, "casados");
+    for (const [chave, campos] of Object.entries(patch)) {
+      const n = Number(chave);
+      const onde = `${p.id}/${track} dia ${chave}`;
+      assert.ok(
+        Number.isInteger(n) && n >= 1 && n <= p.dayCount,
+        `${onde}: fora do intervalo 1..${p.dayCount}`
+      );
+      assert.ok(!("readings" in campos), `${onde}: override não pode mudar readings`);
+
+      const diaBase = base.days[n - 1];
+      for (const campo of Object.keys(campos)) {
+        assert.ok(
+          campo in diaBase || campo === "action",
+          `${onde}: campo "${campo}" não existe no dia base — erro de digitação?`
+        );
+      }
+      assert.ok(
+        Object.entries(campos).some(([c, v]) => diaBase[c] !== v),
+        `${onde}: override idêntico à base, dia esquecido pela metade`
+      );
+    }
+  }
+}
+
+// 11. As trilhas têm de ser intercambiáveis dia a dia — completions guarda o
 //     número global do dia, então leitura diferente no mesmo dia faria quem
 //     troca de trilha no meio do plano perder o lugar.
 const [casados, noivos] = await Promise.all([

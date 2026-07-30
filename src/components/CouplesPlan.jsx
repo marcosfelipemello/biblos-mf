@@ -602,8 +602,9 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
           );
         })}
 
-        {/* Trocar de trilha não mexe no progresso: as trilhas têm os mesmos
-            dias e as mesmas leituras, só o devocional muda. */}
+        {/* Dois caminhos porque são duas situações diferentes: quem casa no
+            meio do plano continua de onde parou; quem terminou a volta
+            recomeça do dia 1 com a outra leitura. */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 mt-6">
           <p className="text-xs font-bold text-slate-700">
             Leitura de {TRACKS[track].toLowerCase()}
@@ -612,19 +613,38 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
             O devocional de cada dia é escrito para a fase de vocês. As leituras
             não mudam.
           </p>
-          <button
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Passar a ler a versão para ${TRACKS[outra].toLowerCase()}? As leituras e o progresso continuam os mesmos.`
+          <div className="mt-3 space-y-1">
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Recomeçar do dia 1 com a leitura de ${TRACKS[
+                      outra
+                    ].toLowerCase()}? O progresso desta volta fica guardado.`
+                  )
                 )
-              )
-                setTrack(outra);
-            }}
-            className="mt-3 text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-4 -mx-2 rounded-full hover:bg-rose-50"
-          >
-            Mudar para {TRACKS[outra].toLowerCase()}
-          </button>
+                  setTrack(outra, { restart: true });
+              }}
+              className="block w-full text-left text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-3 -mx-1 rounded-xl hover:bg-rose-50"
+            >
+              Mudar para {TRACKS[outra].toLowerCase()} e recomeçar do dia 1
+            </button>
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Passar a ler a versão para ${TRACKS[
+                      outra
+                    ].toLowerCase()} a partir do dia atual? O progresso continua o mesmo.`
+                  )
+                )
+                  setTrack(outra);
+              }}
+              className="block w-full text-left text-xs font-bold text-slate-500 hover:text-slate-700 py-2 px-3 -mx-1 rounded-xl hover:bg-slate-50"
+            >
+              Mudar e continuar no dia atual
+            </button>
+          </div>
         </div>
 
         <p className="text-[11px] text-slate-400 text-center pt-6 leading-relaxed">

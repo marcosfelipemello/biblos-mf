@@ -171,11 +171,31 @@ export function useCouple(user) {
     await updateDoc(doc(db, "couples", couple.id), { currentDay: day });
   };
 
-  /** Troca a leitura entre noivos e casados. O progresso não se mexe: as
-   *  trilhas têm o mesmo número de dias e as mesmas leituras em cada dia. */
-  const setTrack = async (track) => {
+  /**
+   * Troca a leitura entre noivos e casados.
+   *
+   * Sem `restart`, o progresso não se mexe — as trilhas têm o mesmo número de
+   * dias e as mesmas leituras, então dá para trocar no meio do plano. Com
+   * `restart`, é uma volta nova: quem terminou como noivo e casou volta ao dia
+   * 1 com a leitura de casados, e a volta anterior fica guardada em `laps`.
+   */
+  const setTrack = async (track, { restart = false } = {}) => {
     if (!couple) return;
-    await updateDoc(doc(db, "couples", couple.id), { track });
+    if (!restart) {
+      await updateDoc(doc(db, "couples", couple.id), { track });
+      return;
+    }
+    await updateDoc(doc(db, "couples", couple.id), {
+      track,
+      currentDay: 1,
+      completions: Object.fromEntries(couple.members.map((uid) => [uid, []])),
+      // serverTimestamp() não é aceito dentro de elemento de array.
+      laps: arrayUnion({
+        track: couple.track || DEFAULT_TRACK,
+        completions: couple.completions || {},
+        at: new Date().toISOString(),
+      }),
+    });
   };
 
   const partnerUid = couple?.members.find((uid) => uid !== user?.uid) || null;

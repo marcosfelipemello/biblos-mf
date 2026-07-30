@@ -49,9 +49,35 @@ Cerca de um terço dos dias é uma boa medida.
 
 ## Trilhas: noivos e casados
 
-Uma fase pode ter duas versões, e o casal escolhe a sua no pareamento. Hoje só
-a Fase 2 tem: `fase2.js` (casados) e `fase2-noivos.js`. As outras fases têm um
-arquivo só, e o `load` delas ignora o argumento da trilha.
+Uma fase pode ter duas versões, e o casal escolhe a sua no pareamento. Isso se
+escreve de dois jeitos, e o critério é quanto do conteúdo realmente diverge.
+
+**Arquivo paralelo** — quando mais de dois terços dos dias mudam. É o caso da
+Fase 2: `fase2.js` (casados) e `fase2-noivos.js`, escolhidos pelo `load(track)`
+no manifesto. Cânticos e Provérbios pedem isso, porque quase todo dia aplica
+diferente para quem espera e para quem já convive.
+
+**Override por dia** — quando só uma parte diverge. A fase mantém o arquivo
+base e declara `overrides` no manifesto; um segundo arquivo traz um mapa de
+`{ diaNaFase: { campos que mudam } }`, mesclado por cima da base. É o caso da
+Fase 1 (16 de 30 dias) e da Fase 3 (6 de 12). Metade dos dias de Gênesis e de
+João fala do casal bíblico ou aplica em segunda pessoa neutra — reescrevê-los
+seria trabalho jogado fora, e mais um arquivo para manter em sincronia.
+
+Regras do override:
+
+- **Nunca inclua `readings`.** É o que garante o alinhamento entre trilhas de
+  graça. O teste falha se aparecer.
+- Só os campos que mudam. Muitas vezes é só a última frase do devocional e a
+  oração — a pergunta ao casal é onde mora o pressuposto.
+- `action: null` remove a ação do dia; o componente já renderiza a seção só
+  quando ela existe.
+- Se o override troca o `theme`, o tema novo entra na contagem de temas únicos
+  daquela trilha como qualquer outro.
+- Override idêntico à base é dia esquecido pela metade, e o teste reprova.
+
+As fases sem nenhuma das duas coisas têm um arquivo só, e o `load` delas ignora
+o argumento da trilha.
 
 A regra que não se quebra: **variantes compartilham o `dayCount` e as
 `readings` de cada dia.** O progresso do casal (`completions`) guarda o número

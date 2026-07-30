@@ -7,11 +7,17 @@
 // precisa bater com o número de dias do arquivo, senão a numeração global
 // quebra em silêncio — o test_couples_plan.js confere isso.
 //
-// Trilhas: uma fase pode ter conteúdo diferente para noivos e para casados. O
-// `load` recebe a trilha e decide o arquivo; fase sem variante ignora o
-// argumento. Variantes obrigatoriamente compartilham dayCount e as mesmas
-// referências dia a dia — completions guarda o número global do dia, então
-// trilhas desalinhadas fariam quem troca de trilha perder o lugar.
+// Trilhas: uma fase pode ter conteúdo diferente para noivos e para casados, e
+// isso se expressa de dois jeitos. Quando quase todo dia diverge, o `load`
+// recebe a trilha e devolve outro arquivo (é o caso da Fase 2). Quando só
+// alguns dias divergem, a fase declara `overrides` e um arquivo à parte traz
+// apenas esses dias, mesclados por cima da base — metade dos dias de Gênesis e
+// de João já serve às duas trilhas, e reescrevê-los seria trabalho jogado fora.
+//
+// Variantes obrigatoriamente compartilham dayCount e as mesmas referências dia
+// a dia — completions guarda o número global do dia, então trilhas
+// desalinhadas fariam quem troca de trilha perder o lugar. Override nunca traz
+// `readings`, o que garante isso de graça.
 
 export const TRACKS = { casados: "Casados", noivos: "Noivos" };
 export const DEFAULT_TRACK = "casados";
@@ -23,6 +29,9 @@ export const PHASES = [
     subtitle: "Gênesis: onde o casamento começou",
     dayCount: 30,
     load: () => import("./fase1.js").then((m) => m.FASE_1),
+    overrides: {
+      noivos: () => import("./fase1-noivos.js").then((m) => m.FASE_1_NOIVOS),
+    },
   },
   {
     id: "fase2-intimidade",
@@ -40,6 +49,9 @@ export const PHASES = [
     subtitle: "João: o Deus que se aproxima",
     dayCount: 12,
     load: () => import("./fase3.js").then((m) => m.FASE_3),
+    overrides: {
+      noivos: () => import("./fase3-noivos.js").then((m) => m.FASE_3_NOIVOS),
+    },
   },
 ];
 
@@ -73,9 +85,20 @@ export function loadPhase(id, track = DEFAULT_TRACK) {
   if (!cache.has(key)) {
     const phase = PHASES.find((p) => p.id === id);
     if (!phase) return Promise.reject(new Error(`Fase inexistente: ${id}`));
-    cache.set(key, phase.load(track));
+    cache.set(key, mesclar(phase, track));
   }
   return cache.get(key);
+}
+
+/** Base da fase com o override da trilha aplicado por cima, dia a dia. */
+async function mesclar(phase, track) {
+  const base = await phase.load(track);
+  if (!phase.overrides?.[track]) return base;
+  const patch = await phase.overrides[track]();
+  return {
+    ...base,
+    days: base.days.map((d, i) => (patch[i + 1] ? { ...d, ...patch[i + 1] } : d)),
+  };
 }
 
 /** Carrega só a fase que contém o dia pedido. */
