@@ -133,6 +133,16 @@ export const PHASES = [
       noivos: () => import("./fase11-noivos.js").then((m) => m.FASE_11_NOIVOS),
     },
   },
+  {
+    id: "fase12-oracao-3",
+    title: "Fase 12 — Oração III",
+    subtitle: "Salmos 101—150: a casa, a mesa e o louvor final",
+    dayCount: 29,
+    load: () => import("./fase12.js").then((m) => m.FASE_12),
+    overrides: {
+      noivos: () => import("./fase12-noivos.js").then((m) => m.FASE_12_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
