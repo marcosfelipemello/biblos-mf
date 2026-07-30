@@ -47,9 +47,35 @@ Uma proposta concreta e pequena: uma pergunta para conversarem, um gesto, orar
 juntos em voz alta. Use com parcimônia — se todo dia tiver, perde o efeito.
 Cerca de um terço dos dias é uma boa medida.
 
+## Trilhas: noivos e casados
+
+Uma fase pode ter duas versões, e o casal escolhe a sua no pareamento. Hoje só
+a Fase 2 tem: `fase2.js` (casados) e `fase2-noivos.js`. As outras fases têm um
+arquivo só, e o `load` delas ignora o argumento da trilha.
+
+A regra que não se quebra: **variantes compartilham o `dayCount` e as
+`readings` de cada dia.** O progresso do casal (`completions`) guarda o número
+global do dia, então uma trilha com outra contagem ou outra leitura no dia N
+faria quem troca de trilha depois do casamento perder o lugar em silêncio. Só
+`theme`, `devotional`, `prayer` e `action` mudam entre trilhas. O teste compara
+as leituras dia a dia e falha se divergirem.
+
+Cada trilha é validada como sequência completa e independente: tema e oração
+não podem repetir dentro da mesma trilha, e cada livro tocado tem de ser
+coberto por inteiro naquela trilha. Trilhas diferentes podem, em teoria, usar
+o mesmo tema no mesmo dia — mas não use: confunde na revisão.
+
+Escrever para noivos não é escrever para casados com desconto. Os eixos são
+outros: espera, expectativa, conhecer a família do outro, dinheiro antes de
+juntar as contas, temperamento sob pressão, preparar antes de mudar de
+endereço. E honestidade com os capítulos mais sexuais (Cânticos 4–5,
+Provérbios 5–7): ensine o texto, sem virar sermão de pureza nem fingir que o
+assunto não está ali.
+
 ## Antes de commitar
 
 1. Somar a entrada no `manifest.js` com o `dayCount` correto
 2. `node test_couples_plan.js` — confere manifesto x conteúdo, numeração,
    faixa de palavras, tema e oração sem repetição, referências resolvendo no
-   `bible.json`, e cobertura completa de cada livro tocado
+   `bible.json`, cobertura completa de cada livro tocado, e as leituras batendo
+   entre as trilhas

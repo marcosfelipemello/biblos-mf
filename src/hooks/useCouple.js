@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "../config/firebase";
+import { TRACKS, DEFAULT_TRACK } from "../data/couplesPlan";
 import {
   doc,
   getDoc,
@@ -68,7 +69,7 @@ export function useCouple(user) {
     name: user.displayName || user.email?.split("@")[0] || "Alguém",
   });
 
-  const createCouple = async () => {
+  const createCouple = async (track = DEFAULT_TRACK) => {
     setError(null);
     // Colisão é improvável (31^8), mas sobrescrever o casal de outra
     // pessoa seria grave demais para confiar só na estatística.
@@ -95,6 +96,7 @@ export function useCouple(user) {
       members: [user.uid],
       profiles: { [user.uid]: profile() },
       planId: "casais",
+      track,
       currentDay: 1,
       completions: { [user.uid]: [] },
       createdAt: serverTimestamp(),
@@ -169,10 +171,20 @@ export function useCouple(user) {
     await updateDoc(doc(db, "couples", couple.id), { currentDay: day });
   };
 
+  /** Troca a leitura entre noivos e casados. O progresso não se mexe: as
+   *  trilhas têm o mesmo número de dias e as mesmas leituras em cada dia. */
+  const setTrack = async (track) => {
+    if (!couple) return;
+    await updateDoc(doc(db, "couples", couple.id), { track });
+  };
+
   const partnerUid = couple?.members.find((uid) => uid !== user?.uid) || null;
 
   return {
     couple,
+    // Casal criado antes das trilhas não tem o campo, e o documento é
+    // gravável pelos membros: valor fora da lista cai no padrão.
+    track: TRACKS[couple?.track] ? couple.track : DEFAULT_TRACK,
     partnerUid,
     partnerName: partnerUid ? couple?.profiles?.[partnerUid]?.name : null,
     isPaired: (couple?.members.length || 0) >= 2,
@@ -183,5 +195,6 @@ export function useCouple(user) {
     leaveCouple,
     completeDay,
     goToDay,
+    setTrack,
   };
 }

@@ -20,11 +20,16 @@ import {
   loadDay,
   totalDays,
   PHASES,
+  TRACKS,
+  DEFAULT_TRACK,
   COUPLES_PLAN,
 } from "../data/couplesPlan";
 import { useCouple } from "../hooks/useCouple";
 import { usePrayers } from "../hooks/usePrayers";
 import { useJournal } from "../hooks/useJournal";
+
+/** Como chamar a outra pessoa: o plano roda para noivos e para casados. */
+const par = (track) => (track === "noivos" ? "noivo(a)" : "cônjuge");
 
 export default function CouplesPlan({ user, onBack, goToBibleReference }) {
   const c = useCouple(user);
@@ -32,15 +37,16 @@ export default function CouplesPlan({ user, onBack, goToBibleReference }) {
   const day = Math.min(c.couple?.currentDay || 1, total);
   const [hoje, setHoje] = useState(null);
 
-  // Carrega só a fase que contém este dia, não o plano inteiro.
+  // Carrega só a fase que contém este dia, na trilha do casal — não o plano
+  // inteiro. Trocar de trilha recarrega o mesmo dia com o outro devocional.
   useEffect(() => {
     if (!c.couple) return;
     let atual = true;
-    loadDay(day).then((d) => atual && setHoje(d));
+    loadDay(day, c.track).then((d) => atual && setHoje(d));
     return () => {
       atual = false;
     };
-  }, [day, c.couple]);
+  }, [day, c.track, c.couple]);
 
   if (c.loading) return <Splash />;
   if (!c.couple) return <Onboarding onBack={onBack} {...c} />;
@@ -73,10 +79,12 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
   const [code, setCode] = useState("");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [track, setTrackLocal] = useState(DEFAULT_TRACK);
 
-  const handleCreate = async () => {
+  const handleCreate = async (escolhida) => {
     setBusy(true);
-    const c = await createCouple();
+    setTrackLocal(escolhida);
+    const c = await createCouple(escolhida);
     if (c) {
       setCode(c);
       setMode("criar");
@@ -129,8 +137,8 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
               <Copy size={14} /> Copiar código
             </button>
             <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">
-              Envie este código para o seu cônjuge. Ele entra pelo mesmo botão
-              e vocês passam a ver o mesmo progresso.
+              Envie este código para o seu {par(track)}. É pelo mesmo botão que
+              se entra, e vocês passam a ver o mesmo progresso.
             </p>
           </div>
         ) : mode === "entrar" ? (
@@ -163,13 +171,31 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
           </form>
         ) : (
           <div className="space-y-3">
-            <button
-              onClick={handleCreate}
-              disabled={busy}
-              className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50"
-            >
-              {busy ? "Criando..." : "Criar plano do casal"}
-            </button>
+            {/* A escolha da trilha é o próprio botão de criar: um toque em vez
+                de escolher e depois confirmar. */}
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+              Vocês são
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleCreate("noivos")}
+                disabled={busy}
+                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {busy ? "..." : "Noivos"}
+              </button>
+              <button
+                onClick={() => handleCreate("casados")}
+                disabled={busy}
+                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {busy ? "..." : "Casados"}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              As leituras são as mesmas; o devocional é escrito para a fase de
+              vocês. Depois do casamento vocês trocam, sem perder o progresso.
+            </p>
             <button
               onClick={() => setMode("entrar")}
               className="w-full py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 active:scale-95 transition-all"
@@ -202,6 +228,8 @@ function DayView({
   isPaired,
   partnerUid,
   partnerName,
+  track,
+  setTrack,
 }) {
   const [sent, setSent] = useState(null);
   const [abertos, setAbertos] = useState(() => new Set());
@@ -304,6 +332,8 @@ function DayView({
         <Roteiro
           atual={hoje.phaseIndex}
           concluidos={minhas}
+          track={track}
+          setTrack={setTrack}
           onClose={() => setVerRoteiro(false)}
         />
       )}
@@ -315,12 +345,12 @@ function DayView({
             <Users size={18} className="text-amber-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-bold text-amber-900">
-                Aguardando seu cônjuge
+                Aguardando seu {par(track)}
               </p>
               <p className="text-xs text-amber-700/80 mt-0.5 leading-relaxed">
                 Envie o código{" "}
-                <span className="font-mono font-bold">{couple.id}</span> para
-                ele. Você já pode começar a leitura.
+                <span className="font-mono font-bold">{couple.id}</span>. Você
+                já pode começar a leitura.
               </p>
             </div>
           </div>
@@ -501,7 +531,8 @@ function Section({ icon, label }) {
 }
 
 /** Roteiro das fases: onde o casal está e o que vem pela frente. */
-function Roteiro({ atual, concluidos, onClose }) {
+function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
+  const outra = track === "noivos" ? "casados" : "noivos";
   const linhas = PHASES.map((p, i) => {
     const de = PHASES.slice(0, i).reduce((n, x) => n + x.dayCount, 1);
     const ate = de + p.dayCount - 1;
@@ -570,6 +601,31 @@ function Roteiro({ atual, concluidos, onClose }) {
             </div>
           );
         })}
+
+        {/* Trocar de trilha não mexe no progresso: as trilhas têm os mesmos
+            dias e as mesmas leituras, só o devocional muda. */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 mt-6">
+          <p className="text-xs font-bold text-slate-700">
+            Leitura de {TRACKS[track].toLowerCase()}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+            O devocional de cada dia é escrito para a fase de vocês. As leituras
+            não mudam.
+          </p>
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Passar a ler a versão para ${TRACKS[outra].toLowerCase()}? As leituras e o progresso continuam os mesmos.`
+                )
+              )
+                setTrack(outra);
+            }}
+            className="mt-3 text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-4 -mx-2 rounded-full hover:bg-rose-50"
+          >
+            Mudar para {TRACKS[outra].toLowerCase()}
+          </button>
+        </div>
 
         <p className="text-[11px] text-slate-400 text-center pt-6 leading-relaxed">
           Novas fases são acrescentadas conforme o plano avança, até cobrir a

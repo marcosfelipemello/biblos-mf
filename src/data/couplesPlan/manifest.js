@@ -6,6 +6,15 @@
 // Acrescentar uma fase: criar o arquivo e somar uma entrada aqui. O dayCount
 // precisa bater com o número de dias do arquivo, senão a numeração global
 // quebra em silêncio — o test_couples_plan.js confere isso.
+//
+// Trilhas: uma fase pode ter conteúdo diferente para noivos e para casados. O
+// `load` recebe a trilha e decide o arquivo; fase sem variante ignora o
+// argumento. Variantes obrigatoriamente compartilham dayCount e as mesmas
+// referências dia a dia — completions guarda o número global do dia, então
+// trilhas desalinhadas fariam quem troca de trilha perder o lugar.
+
+export const TRACKS = { casados: "Casados", noivos: "Noivos" };
+export const DEFAULT_TRACK = "casados";
 
 export const PHASES = [
   {
@@ -20,7 +29,17 @@ export const PHASES = [
     title: "Fase 2 — Intimidade",
     subtitle: "Cânticos e Provérbios: desejo e sabedoria",
     dayCount: 23,
-    load: () => import("./fase2.js").then((m) => m.FASE_2),
+    load: (track) =>
+      track === "noivos"
+        ? import("./fase2-noivos.js").then((m) => m.FASE_2_NOIVOS)
+        : import("./fase2.js").then((m) => m.FASE_2),
+  },
+  {
+    id: "fase3-encontro",
+    title: "Fase 3 — O Encontro",
+    subtitle: "João: o Deus que se aproxima",
+    dayCount: 12,
+    load: () => import("./fase3.js").then((m) => m.FASE_3),
   },
 ];
 
@@ -49,19 +68,20 @@ export function phaseForDay(day) {
 
 const cache = new Map();
 
-export function loadPhase(id) {
-  if (!cache.has(id)) {
+export function loadPhase(id, track = DEFAULT_TRACK) {
+  const key = `${id}:${track}`;
+  if (!cache.has(key)) {
     const phase = PHASES.find((p) => p.id === id);
     if (!phase) return Promise.reject(new Error(`Fase inexistente: ${id}`));
-    cache.set(id, phase.load());
+    cache.set(key, phase.load(track));
   }
-  return cache.get(id);
+  return cache.get(key);
 }
 
 /** Carrega só a fase que contém o dia pedido. */
-export async function loadDay(day) {
+export async function loadDay(day, track = DEFAULT_TRACK) {
   const { phase, dayInPhase, startDay, index } = phaseForDay(day);
-  const content = await loadPhase(phase.id);
+  const content = await loadPhase(phase.id, track);
   return {
     ...content.days[dayInPhase - 1],
     day,
@@ -73,8 +93,8 @@ export async function loadDay(day) {
 }
 
 /** Todos os dias de todas as fases. Usado só por teste e conferência. */
-export async function loadAllDays() {
-  const all = await Promise.all(PHASES.map((p) => loadPhase(p.id)));
+export async function loadAllDays(track = DEFAULT_TRACK) {
+  const all = await Promise.all(PHASES.map((p) => loadPhase(p.id, track)));
   const days = [];
   all.forEach((content, i) => {
     for (const d of content.days) {

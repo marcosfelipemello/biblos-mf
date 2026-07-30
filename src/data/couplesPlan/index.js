@@ -7,6 +7,8 @@ export const COUPLES_PLAN = {
 
 export {
   PHASES,
+  TRACKS,
+  DEFAULT_TRACK,
   totalDays,
   phaseForDay,
   loadPhase,
