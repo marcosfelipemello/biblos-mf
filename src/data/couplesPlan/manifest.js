@@ -73,6 +73,16 @@ export const PHASES = [
       noivos: () => import("./fase5-noivos.js").then((m) => m.FASE_5_NOIVOS),
     },
   },
+  {
+    id: "fase6-libertacao",
+    title: "Fase 6 — Libertação",
+    subtitle: "Êxodo: sair do Egito e tirar o Egito de dentro",
+    dayCount: 24,
+    load: () => import("./fase6.js").then((m) => m.FASE_6),
+    overrides: {
+      noivos: () => import("./fase6-noivos.js").then((m) => m.FASE_6_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
