@@ -163,6 +163,16 @@ export const PHASES = [
       noivos: () => import("./fase14-noivos.js").then((m) => m.FASE_14_NOIVOS),
     },
   },
+  {
+    id: "fase15-quando-doi",
+    title: "Fase 15 — Quando dói",
+    subtitle: "Jó: o sofrimento que não recebe explicação",
+    dayCount: 25,
+    load: () => import("./fase15.js").then((m) => m.FASE_15),
+    overrides: {
+      noivos: () => import("./fase15-noivos.js").then((m) => m.FASE_15_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
