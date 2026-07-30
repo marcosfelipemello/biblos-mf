@@ -98,6 +98,18 @@ endereço. E honestidade com os capítulos mais sexuais (Cânticos 4–5,
 Provérbios 5–7): ensine o texto, sem virar sermão de pureza nem fingir que o
 assunto não está ali.
 
+## Livro dividido em fases
+
+Um livro pode ser lido em fases distantes: Salmos vem em três blocos (1—50 na
+Fase 5, 51—100 na Fase 8, 101—150 na Fase 12). Por isso o teste **não** exige o
+livro inteiro dentro de uma fase — exige que os capítulos comecem no 1 e
+avancem sem furo nem inversão, que é o erro que ninguém percebe lendo.
+
+Livro incompleto aparece na linha "em andamento" do relatório do teste. Confira
+essa linha a cada fase nova: parcial esquecido é capítulo que nunca vai ser
+lido, e o teste não tem como adivinhar a diferença entre "ainda vem" e
+"esquecemos".
+
 ## Antes de commitar
 
 1. Somar a entrada no `manifest.js` com o `dayCount` correto

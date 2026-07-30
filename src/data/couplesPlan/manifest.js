@@ -63,6 +63,16 @@ export const PHASES = [
         ? import("./fase4-noivos.js").then((m) => m.FASE_4_NOIVOS)
         : import("./fase4.js").then((m) => m.FASE_4),
   },
+  {
+    id: "fase5-oracao-1",
+    title: "Fase 5 — Oração I",
+    subtitle: "Salmos 1—50: aprender a falar com Deus",
+    dayCount: 29,
+    load: () => import("./fase5.js").then((m) => m.FASE_5),
+    overrides: {
+      noivos: () => import("./fase5-noivos.js").then((m) => m.FASE_5_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
