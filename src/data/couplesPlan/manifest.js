@@ -183,6 +183,16 @@ export const PHASES = [
       noivos: () => import("./fase16-noivos.js").then((m) => m.FASE_16_NOIVOS),
     },
   },
+  {
+    id: "fase17-amor-pratica",
+    title: "Fase 17 — Amor na prática",
+    subtitle: "1 e 2 Coríntios: a igreja mais problemática do Novo Testamento",
+    dayCount: 17,
+    load: () => import("./fase17.js").then((m) => m.FASE_17),
+    overrides: {
+      noivos: () => import("./fase17-noivos.js").then((m) => m.FASE_17_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
