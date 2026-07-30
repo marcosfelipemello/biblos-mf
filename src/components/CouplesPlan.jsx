@@ -223,6 +223,7 @@ function DayView({
   onBack,
   goToBibleReference,
   completeDay,
+  uncompleteDay,
   goToDay,
   leaveCouple,
   isPaired,
@@ -484,6 +485,17 @@ function DayView({
             "Marcar como concluído"
           )}
         </button>
+
+        {/* Marcar sem querer é fácil e acontece. Desfazer fica discreto para
+            não competir com o botão principal, mas existe sempre. */}
+        {euMarquei && (
+          <button
+            onClick={() => uncompleteDay(day)}
+            className="w-full mt-2 py-2 text-xs font-bold text-slate-400 hover:text-slate-600"
+          >
+            Desfazer
+          </button>
+        )}
 
         {isPaired && (
           <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium">

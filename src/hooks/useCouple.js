@@ -166,6 +166,23 @@ export function useCouple(user) {
     await updateDoc(doc(db, "couples", couple.id), updates);
   };
 
+  /**
+   * Desfaz a marcação do dia. Sem diálogo de confirmação: desfazer um toque
+   * errado não pode custar mais um toque.
+   *
+   * Se o dia já tinha avançado porque os dois marcaram, volta para ele —
+   * ninguém deve ficar adiante de um dia que não concluiu. Como só dá para
+   * desfazer o dia que está na tela, isso na prática significa continuar
+   * exatamente onde a pessoa está.
+   */
+  const uncompleteDay = async (day) => {
+    if (!couple) return;
+    await updateDoc(doc(db, "couples", couple.id), {
+      [`completions.${user.uid}`]: arrayRemove(day),
+      currentDay: Math.min(couple.currentDay || 1, day),
+    });
+  };
+
   const goToDay = async (day) => {
     if (!couple) return;
     await updateDoc(doc(db, "couples", couple.id), { currentDay: day });
@@ -214,6 +231,7 @@ export function useCouple(user) {
     joinCouple,
     leaveCouple,
     completeDay,
+    uncompleteDay,
     goToDay,
     setTrack,
   };

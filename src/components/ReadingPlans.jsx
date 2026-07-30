@@ -156,6 +156,7 @@ function PlanDetail({
   goToBibleReference,
   startPlan,
   completeDay,
+  uncompleteDay,
   goToDay,
   resetPlan,
 }) {
@@ -283,6 +284,16 @@ function PlanDetail({
             "Marcar como lido"
           )}
         </button>
+
+        {/* Marcar sem querer é fácil, e aqui o dia já avança junto. */}
+        {isDone && (
+          <button
+            onClick={() => uncompleteDay(plan.id, day)}
+            className="w-full mt-2 py-2 text-xs font-bold text-slate-400 hover:text-slate-600"
+          >
+            Desfazer
+          </button>
+        )}
       </div>
     </div>
   );

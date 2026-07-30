@@ -8,6 +8,7 @@ import {
   updateDoc,
   deleteDoc,
   arrayUnion,
+  arrayRemove,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -64,6 +65,20 @@ export function useReadingPlan(user) {
     });
   };
 
+  /**
+   * Desfaz a marcação do dia e volta o cursor para ele. Aqui o completeDay
+   * avança na hora, sem esperar ninguém, então um toque errado marcava e
+   * pulava o dia de uma vez — e o botão ficava desabilitado depois.
+   */
+  const uncompleteDay = async (planId, day) => {
+    if (disabled) return;
+    await updateDoc(ref(planId), {
+      completedDays: arrayRemove(day),
+      currentDay: day,
+      updatedAt: serverTimestamp(),
+    });
+  };
+
   const goToDay = async (planId, day) => {
     if (disabled) return;
     await updateDoc(ref(planId), { currentDay: day });
@@ -79,6 +94,7 @@ export function useReadingPlan(user) {
     loading: disabled ? false : loading,
     startPlan,
     completeDay,
+    uncompleteDay,
     goToDay,
     resetPlan,
   };
