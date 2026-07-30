@@ -103,6 +103,16 @@ export const PHASES = [
       noivos: () => import("./fase8-noivos.js").then((m) => m.FASE_8_NOIVOS),
     },
   },
+  {
+    id: "fase9-chamado-espera",
+    title: "Fase 9 — Chamado e espera",
+    subtitle: "1 Samuel: ser escolhido não encurta a espera",
+    dayCount: 18,
+    load: () => import("./fase9.js").then((m) => m.FASE_9),
+    overrides: {
+      noivos: () => import("./fase9-noivos.js").then((m) => m.FASE_9_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
