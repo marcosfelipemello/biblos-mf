@@ -173,6 +173,16 @@ export const PHASES = [
       noivos: () => import("./fase15-noivos.js").then((m) => m.FASE_15_NOIVOS),
     },
   },
+  {
+    id: "fase16-compaixao",
+    title: "Fase 16 — Compaixão",
+    subtitle: "Lucas: o evangelho de quem está no chão",
+    dayCount: 14,
+    load: () => import("./fase16.js").then((m) => m.FASE_16),
+    overrides: {
+      noivos: () => import("./fase16-noivos.js").then((m) => m.FASE_16_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
