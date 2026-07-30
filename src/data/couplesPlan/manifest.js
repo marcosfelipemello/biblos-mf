@@ -93,6 +93,16 @@ export const PHASES = [
       noivos: () => import("./fase7-noivos.js").then((m) => m.FASE_7_NOIVOS),
     },
   },
+  {
+    id: "fase8-oracao-2",
+    title: "Fase 8 — Oração II",
+    subtitle: "Salmos 51—100: confissão, escuridão e volta",
+    dayCount: 29,
+    load: () => import("./fase8.js").then((m) => m.FASE_8),
+    overrides: {
+      noivos: () => import("./fase8-noivos.js").then((m) => m.FASE_8_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
