@@ -123,6 +123,16 @@ export const PHASES = [
       noivos: () => import("./fase10-noivos.js").then((m) => m.FASE_10_NOIVOS),
     },
   },
+  {
+    id: "fase11-poder-queda",
+    title: "Fase 11 — Poder e queda",
+    subtitle: "2 Samuel: o que o poder faz com quem Deus escolheu",
+    dayCount: 14,
+    load: () => import("./fase11.js").then((m) => m.FASE_11),
+    overrides: {
+      noivos: () => import("./fase11-noivos.js").then((m) => m.FASE_11_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
