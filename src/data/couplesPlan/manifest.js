@@ -153,6 +153,16 @@ export const PHASES = [
       noivos: () => import("./fase13-noivos.js").then((m) => m.FASE_13_NOIVOS),
     },
   },
+  {
+    id: "fase14-casa-crista",
+    title: "Fase 14 — A casa cristã",
+    subtitle: "Cartas de Paulo: como se vive dentro de casa",
+    dayCount: 13,
+    load: () => import("./fase14.js").then((m) => m.FASE_14),
+    overrides: {
+      noivos: () => import("./fase14-noivos.js").then((m) => m.FASE_14_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
