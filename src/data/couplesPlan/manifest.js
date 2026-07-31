@@ -233,6 +233,16 @@ export const PHASES = [
       noivos: () => import("./fase21-noivos.js").then((m) => m.FASE_21_NOIVOS),
     },
   },
+  {
+    id: "fase22-consolo",
+    title: "Fase 22 — Consolo",
+    subtitle: "Isaías 40—66: o Servo, o consolo e o nome novo",
+    dayCount: 16,
+    load: () => import("./fase22.js").then((m) => m.FASE_22),
+    overrides: {
+      noivos: () => import("./fase22-noivos.js").then((m) => m.FASE_22_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
