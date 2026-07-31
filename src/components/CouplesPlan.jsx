@@ -568,6 +568,52 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
       </div>
 
       <div className="p-6 pb-32 space-y-3">
+        {/* Dois caminhos porque são duas situações diferentes: quem casa no
+            meio do plano continua de onde parou; quem terminou a volta
+            recomeça do dia 1 com a outra leitura. Fica no topo porque, com 29
+            fases na lista, no rodapé ninguém chegava até aqui. */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4">
+          <p className="text-xs font-bold text-slate-700">
+            Leitura de {TRACKS[track].toLowerCase()}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+            O devocional de cada dia é escrito para a fase de vocês. As leituras
+            não mudam.
+          </p>
+          <div className="mt-3 space-y-1">
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Recomeçar do dia 1 com a leitura de ${TRACKS[
+                      outra
+                    ].toLowerCase()}? O progresso desta volta fica guardado.`
+                  )
+                )
+                  setTrack(outra, { restart: true });
+              }}
+              className="block w-full text-left text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-3 -mx-1 rounded-xl hover:bg-rose-50"
+            >
+              Mudar para {TRACKS[outra].toLowerCase()} e recomeçar do dia 1
+            </button>
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Passar a ler a versão para ${TRACKS[
+                      outra
+                    ].toLowerCase()} a partir do dia atual? O progresso continua o mesmo.`
+                  )
+                )
+                  setTrack(outra);
+              }}
+              className="block w-full text-left text-xs font-bold text-slate-500 hover:text-slate-700 py-2 px-3 -mx-1 rounded-xl hover:bg-slate-50"
+            >
+              Mudar e continuar no dia atual
+            </button>
+          </div>
+        </div>
+
         {linhas.map(({ p, i, de, ate, feitos }) => {
           const pct = Math.round((feitos / p.dayCount) * 100);
           const eAtual = i === atual;
@@ -613,51 +659,6 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
             </div>
           );
         })}
-
-        {/* Dois caminhos porque são duas situações diferentes: quem casa no
-            meio do plano continua de onde parou; quem terminou a volta
-            recomeça do dia 1 com a outra leitura. */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 mt-6">
-          <p className="text-xs font-bold text-slate-700">
-            Leitura de {TRACKS[track].toLowerCase()}
-          </p>
-          <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-            O devocional de cada dia é escrito para a fase de vocês. As leituras
-            não mudam.
-          </p>
-          <div className="mt-3 space-y-1">
-            <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    `Recomeçar do dia 1 com a leitura de ${TRACKS[
-                      outra
-                    ].toLowerCase()}? O progresso desta volta fica guardado.`
-                  )
-                )
-                  setTrack(outra, { restart: true });
-              }}
-              className="block w-full text-left text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-3 -mx-1 rounded-xl hover:bg-rose-50"
-            >
-              Mudar para {TRACKS[outra].toLowerCase()} e recomeçar do dia 1
-            </button>
-            <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    `Passar a ler a versão para ${TRACKS[
-                      outra
-                    ].toLowerCase()} a partir do dia atual? O progresso continua o mesmo.`
-                  )
-                )
-                  setTrack(outra);
-              }}
-              className="block w-full text-left text-xs font-bold text-slate-500 hover:text-slate-700 py-2 px-3 -mx-1 rounded-xl hover:bg-slate-50"
-            >
-              Mudar e continuar no dia atual
-            </button>
-          </div>
-        </div>
 
         <p className="text-[11px] text-slate-400 text-center pt-6 leading-relaxed">
           Novas fases são acrescentadas conforme o plano avança, até cobrir a
