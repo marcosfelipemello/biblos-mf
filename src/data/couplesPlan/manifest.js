@@ -193,6 +193,16 @@ export const PHASES = [
       noivos: () => import("./fase17-noivos.js").then((m) => m.FASE_17_NOIVOS),
     },
   },
+  {
+    id: "fase18-escolhas-herancas",
+    title: "Fase 18 — Escolhas e heranças",
+    subtitle: "1 e 2 Reis: o desmoronamento que levou trezentos anos",
+    dayCount: 28,
+    load: () => import("./fase18.js").then((m) => m.FASE_18),
+    overrides: {
+      noivos: () => import("./fase18-noivos.js").then((m) => m.FASE_18_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
