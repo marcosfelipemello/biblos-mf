@@ -274,6 +274,17 @@ export const PHASES = [
       noivos: () => import("./fase25-noivos.js").then((m) => m.FASE_25_NOIVOS),
     },
   },
+  {
+    id: "fase26-a-volta",
+    title: "Fase 26 — A volta",
+    subtitle:
+      "Crônicas, Esdras, Neemias e Ester: recomeçar sobre ruína conhecida",
+    dayCount: 48,
+    load: () => import("./fase26.js").then((m) => m.FASE_26),
+    overrides: {
+      noivos: () => import("./fase26-noivos.js").then((m) => m.FASE_26_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
