@@ -213,6 +213,16 @@ export const PHASES = [
       noivos: () => import("./fase19-noivos.js").then((m) => m.FASE_19_NOIVOS),
     },
   },
+  {
+    id: "fase20-santo-israel",
+    title: "Fase 20 — O Santo de Israel",
+    subtitle: "Isaías 1—39: o profeta que via o Rei e a política ao mesmo tempo",
+    dayCount: 20,
+    load: () => import("./fase20.js").then((m) => m.FASE_20),
+    overrides: {
+      noivos: () => import("./fase20-noivos.js").then((m) => m.FASE_20_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
