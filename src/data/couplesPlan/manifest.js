@@ -253,6 +253,16 @@ export const PHASES = [
       noivos: () => import("./fase23-noivos.js").then((m) => m.FASE_23_NOIVOS),
     },
   },
+  {
+    id: "fase24-terra-vazio",
+    title: "Fase 24 — A terra e o vazio",
+    subtitle: "Josué e Juízes: receber a promessa e esquecer de quem ela veio",
+    dayCount: 28,
+    load: () => import("./fase24.js").then((m) => m.FASE_24),
+    overrides: {
+      noivos: () => import("./fase24-noivos.js").then((m) => m.FASE_24_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
