@@ -203,6 +203,16 @@ export const PHASES = [
       noivos: () => import("./fase18-noivos.js").then((m) => m.FASE_18_NOIVOS),
     },
   },
+  {
+    id: "fase19-rei-reino",
+    title: "Fase 19 — O Rei e o Reino",
+    subtitle: "Mateus: o Rei que ensina como se vive",
+    dayCount: 18,
+    load: () => import("./fase19.js").then((m) => m.FASE_19),
+    overrides: {
+      noivos: () => import("./fase19-noivos.js").then((m) => m.FASE_19_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
