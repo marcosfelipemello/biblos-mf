@@ -295,6 +295,16 @@ export const PHASES = [
       noivos: () => import("./fase27-noivos.js").then((m) => m.FASE_27_NOIVOS),
     },
   },
+  {
+    id: "fase28-visoes-exilio",
+    title: "Fase 28 — Visões no exílio",
+    subtitle: "Ezequiel e Daniel: ver a glória longe de casa",
+    dayCount: 35,
+    load: () => import("./fase28.js").then((m) => m.FASE_28),
+    overrides: {
+      noivos: () => import("./fase28-noivos.js").then((m) => m.FASE_28_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
