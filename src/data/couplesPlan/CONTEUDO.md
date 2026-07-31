@@ -110,36 +110,34 @@ essa linha a cada fase nova: parcial esquecido é capítulo que nunca vai ser
 lido, e o teste não tem como adivinhar a diferença entre "ainda vem" e
 "esquecemos".
 
-## O que falta, e em que ordem
+## O plano completo
 
-O plano cobre a Bíblia inteira em 29 fases e ~695 dias. Até a Fase 22 a ordem
-foi decidida fase a fase, o que já custou uma discussão; daqui em diante fica
-escrita. Depois da Fase 22 são 419 dias feitos, restam 37 livros e 476
-capítulos — a 1,7 capítulo por dia, o ritmo praticado, dá os ~276 dias que
-sobram. Os números fecham; o que muda de uma fase para outra é o agrupamento.
+As 29 fases estão escritas: **681 dias, 66 livros, 1189 capítulos**, nas duas
+trilhas. Nenhum livro fica na linha "em andamento" do teste, e cada capítulo
+da Bíblia aparece exatamente uma vez.
 
-| Fase | Livros | Cap. | Dias |
-|------|--------|------|------|
-| 23 | 1 e 2 Timóteo, Tito, Filemom, 1 e 2 Pedro, 1 a 3 João, Judas | 30 | ~20 |
-| 24 | Josué e Juízes | 45 | ~28 |
-| 25 | Levítico, Números e Deuteronômio | 97 | ~48 |
-| 26 | 1 e 2 Crônicas, Esdras, Neemias e Ester | 98 | ~50 |
-| 27 | Jeremias e Lamentações | 57 | ~33 |
-| 28 | Ezequiel e Daniel | 60 | ~35 |
-| 29 | Os doze profetas menores e Apocalipse | 89 | ~50 |
+| Fase | Livros | Dias |
+|------|--------|------|
+| 1—12 | Gênesis, Cânticos e Provérbios, João, Eclesiastes e Rute, Salmos 1—50, Êxodo, Marcos, Salmos 51—100, 1 Samuel, Atos, 2 Samuel, Salmos 101—150 | 262 |
+| 13—18 | Romanos e Gálatas, cartas da casa cristã, Jó, Lucas, 1 e 2 Coríntios, 1 e 2 Reis | 90 |
+| 19—22 | Mateus, Isaías 1—39, Hebreus e Tiago, Isaías 40—66 | 67 |
+| 23—26 | de 1 Timóteo a Judas, Josué e Juízes, Levítico a Deuteronômio, Crônicas a Ester | 144 |
+| 27—29 | Jeremias e Lamentações, Ezequiel e Daniel, os doze profetas e Apocalipse | 118 |
 
-Duas decisões que a tabela esconde:
+Três decisões que a tabela esconde, registradas porque parecem erro quando
+lidas de fora:
 
-- **A alternância entre Antigo e Novo Testamento acaba na Fase 23**, e não por
-  descuido: dos 476 capítulos que restam, 446 são do Antigo. As cartas finais
-  vêm agora justamente para não deixar o plano terminar em vinte e tantas
-  fases seguidas de profeta.
-- **Apocalipse fecha o plano**, junto dos doze profetas menores. É o único
+- **Livros partidos em blocos distantes**: Salmos em três, Isaías em dois. É
+  o que a seção "Livro dividido em fases" prevê, e o teste cobre.
+- **A alternância entre Antigo e Novo Testamento acaba na Fase 23**, quando o
+  Novo acaba: dos capítulos que restavam dali em diante, 446 de 476 eram do
+  Antigo. As cartas finais foram antecipadas para que o plano não terminasse
+  em seis fases seguidas de profeta.
+- **Apocalipse fecha o plano**, e o último dia é Apocalipse 22 — o único
   lugar em que ele cabe sem virar apêndice.
 
-Josué e Juízes não são retrocesso: são o vão entre Êxodo (Fase 6) e 1 Samuel
-(Fase 9), e a espinha narrativa do Antigo Testamento fica com furo enquanto
-eles não entrarem.
+Se um dia o plano for estendido, o padrão de escrita continua sendo este
+arquivo; o que mudaria é só a numeração das fases e o total no `manifest.js`.
 
 ## Antes de commitar
 
