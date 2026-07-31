@@ -285,6 +285,16 @@ export const PHASES = [
       noivos: () => import("./fase26-noivos.js").then((m) => m.FASE_26_NOIVOS),
     },
   },
+  {
+    id: "fase27-profeta-chorou",
+    title: "Fase 27 — O profeta que chorou",
+    subtitle: "Jeremias e Lamentações: dizer a verdade sem ser ouvido",
+    dayCount: 33,
+    load: () => import("./fase27.js").then((m) => m.FASE_27),
+    overrides: {
+      noivos: () => import("./fase27-noivos.js").then((m) => m.FASE_27_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
