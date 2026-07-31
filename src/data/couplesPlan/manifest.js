@@ -305,6 +305,16 @@ export const PHASES = [
       noivos: () => import("./fase28-noivos.js").then((m) => m.FASE_28_NOIVOS),
     },
   },
+  {
+    id: "fase29-ate-o-fim",
+    title: "Fase 29 — Até o fim",
+    subtitle: "Os doze profetas e Apocalipse: a última palavra é um convite",
+    dayCount: 50,
+    load: () => import("./fase29.js").then((m) => m.FASE_29),
+    overrides: {
+      noivos: () => import("./fase29-noivos.js").then((m) => m.FASE_29_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
