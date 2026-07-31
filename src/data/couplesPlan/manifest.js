@@ -223,6 +223,16 @@ export const PHASES = [
       noivos: () => import("./fase20-noivos.js").then((m) => m.FASE_20_NOIVOS),
     },
   },
+  {
+    id: "fase21-fe-aguenta",
+    title: "Fase 21 — Fé que aguenta",
+    subtitle: "Hebreus e Tiago: não voltar atrás e não fingir",
+    dayCount: 13,
+    load: () => import("./fase21.js").then((m) => m.FASE_21),
+    overrides: {
+      noivos: () => import("./fase21-noivos.js").then((m) => m.FASE_21_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
