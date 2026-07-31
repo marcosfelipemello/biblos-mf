@@ -243,6 +243,16 @@ export const PHASES = [
       noivos: () => import("./fase22-noivos.js").then((m) => m.FASE_22_NOIVOS),
     },
   },
+  {
+    id: "fase23-cartas-finais",
+    title: "Fase 23 — Cartas finais",
+    subtitle: "De 1 Timóteo a Judas: instruções de quem já estava se despedindo",
+    dayCount: 20,
+    load: () => import("./fase23.js").then((m) => m.FASE_23),
+    overrides: {
+      noivos: () => import("./fase23-noivos.js").then((m) => m.FASE_23_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
