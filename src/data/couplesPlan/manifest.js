@@ -263,6 +263,17 @@ export const PHASES = [
       noivos: () => import("./fase24-noivos.js").then((m) => m.FASE_24_NOIVOS),
     },
   },
+  {
+    id: "fase25-a-lei",
+    title: "Fase 25 — A Lei",
+    subtitle:
+      "Levítico, Números e Deuteronômio: como se aprende a viver perto de Deus",
+    dayCount: 48,
+    load: () => import("./fase25.js").then((m) => m.FASE_25),
+    overrides: {
+      noivos: () => import("./fase25-noivos.js").then((m) => m.FASE_25_NOIVOS),
+    },
+  },
 ];
 
 export const totalDays = () =>
