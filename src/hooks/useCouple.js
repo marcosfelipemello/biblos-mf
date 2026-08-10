@@ -183,6 +183,19 @@ export function useCouple(user) {
     });
   };
 
+  /**
+   * Reflexão do dia, uma por pessoa, visível para os dois.
+   *
+   * ponytail: notas no próprio documento do casal (teto de 1MB do Firestore).
+   * Se apertar, virar subcoleção couples/{id}/notes/{dia}.
+   */
+  const saveNote = async (day, text) => {
+    if (!couple) return;
+    await updateDoc(doc(db, "couples", couple.id), {
+      [`notes.${day}.${user.uid}`]: text.slice(0, 2000),
+    });
+  };
+
   const goToDay = async (day) => {
     if (!couple) return;
     await updateDoc(doc(db, "couples", couple.id), { currentDay: day });
@@ -232,6 +245,7 @@ export function useCouple(user) {
     leaveCouple,
     completeDay,
     uncompleteDay,
+    saveNote,
     goToDay,
     setTrack,
   };

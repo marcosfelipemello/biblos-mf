@@ -226,6 +226,7 @@ function DayView({
   uncompleteDay,
   goToDay,
   leaveCouple,
+  saveNote,
   isPaired,
   partnerUid,
   partnerName,
@@ -233,6 +234,9 @@ function DayView({
   setTrack,
 }) {
   const [sent, setSent] = useState(null);
+  // Rascunho da reflexão: { day, text }. Guardar o dia junto faz virar o dia
+  // fechar o editor sem precisar de efeito.
+  const [rascunho, setRascunho] = useState(null);
   const [abertos, setAbertos] = useState(() => new Set());
   const [verRoteiro, setVerRoteiro] = useState(false);
   const { addPrayer } = usePrayers(user);
@@ -251,6 +255,13 @@ function DayView({
       return next;
     });
 
+  const editando = rascunho?.day === day ? rascunho.text : null;
+
+  const minhaNota = couple.notes?.[day]?.[user.uid] || "";
+  const notaDoParceiro = partnerUid
+    ? couple.notes?.[day]?.[partnerUid] || ""
+    : "";
+
   const minhas = couple.completions?.[user.uid] || [];
   const doParceiro = partnerUid ? couple.completions?.[partnerUid] || [] : [];
   const euMarquei = minhas.includes(day);
@@ -268,13 +279,25 @@ function DayView({
     setTimeout(() => setSent(null), 2500);
   };
 
-  const enviarDevocional = async () => {
-    await addEntry(
-      `${hoje.devotional}\n\n---\n\nNossa reflexão:\n`,
-      `Dia ${day} — ${hoje.theme}`
-    );
-    setSent("devocional");
-    setTimeout(() => setSent(null), 2500);
+  const salvarNota = async () => {
+    const texto = editando.trim();
+    if (!texto) return;
+    try {
+      await saveNote(day, texto);
+      // Cópia no diário pessoal só na primeira vez — editar não deve gerar
+      // uma nota nova a cada salvamento.
+      if (!minhaNota)
+        await addEntry(
+          `${hoje.devotional}\n\n---\n\nNossa reflexão:\n${texto}`,
+          `Dia ${day} — ${hoje.theme}`
+        );
+      setRascunho(null);
+      setSent("devocional");
+      setTimeout(() => setSent(null), 2500);
+    } catch (err) {
+      console.error("Reflexão do casal:", err);
+      setSent("erro");
+    }
   };
 
   return (
@@ -417,15 +440,78 @@ function DayView({
               {hoje.devotional}
             </p>
           </div>
-          <button
-            onClick={enviarDevocional}
-            className="w-full py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all"
-          >
-            <Edit3 size={14} />
-            {sent === "devocional"
-              ? "Salvo no Meu Devocional"
-              : "Escrever nossa reflexão"}
-          </button>
+
+          {notaDoParceiro && (
+            <div className="bg-rose-50 rounded-2xl p-5 border border-rose-100 mb-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
+                Reflexão de {partnerName}
+              </p>
+              <p className="text-[15px] leading-relaxed text-rose-900 whitespace-pre-line">
+                {notaDoParceiro}
+              </p>
+            </div>
+          )}
+
+          {minhaNota && editando === null && (
+            <div className="bg-white rounded-2xl p-5 border border-rose-100 mb-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
+                Sua reflexão
+              </p>
+              <p className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-line">
+                {minhaNota}
+              </p>
+            </div>
+          )}
+
+          {editando === null ? (
+            <button
+              onClick={() => {
+                setSent(null);
+                setRascunho({ day, text: minhaNota });
+              }}
+              className="w-full py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all"
+            >
+              <Edit3 size={14} />
+              {sent === "devocional"
+                ? "Reflexão salva"
+                : minhaNota
+                  ? "Editar nossa reflexão"
+                  : "Escrever nossa reflexão"}
+            </button>
+          ) : (
+            <div className="bg-white rounded-2xl p-4 border border-rose-200 shadow-sm">
+              <textarea
+                autoFocus
+                rows={5}
+                maxLength={2000}
+                value={editando}
+                onChange={(e) => setRascunho({ day, text: e.target.value })}
+                placeholder="O que essa leitura falou com vocês hoje?"
+                className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-slate-700 outline-none placeholder:text-slate-300"
+              />
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={() => setRascunho(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={salvarNota}
+                  disabled={!editando.trim()}
+                  className="flex-1 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 disabled:opacity-40 active:scale-95 transition-all"
+                >
+                  Salvar reflexão
+                </button>
+              </div>
+            </div>
+          )}
+
+          {sent === "erro" && (
+            <p className="text-xs font-bold text-red-500 mt-2 text-center">
+              Não deu para salvar. Tente de novo.
+            </p>
+          )}
         </Collapsible>
 
         {/* 3. ORAÇÃO */}
