@@ -65,6 +65,18 @@ export function useCouple(user) {
     return () => unsubscribe();
   }, [coupleId]);
 
+  // 3. Casal criado antes das posições por pessoa (ou parceiro que entrou
+  // depois): fixa a posição no dia corrente do casal na primeira abertura.
+  // Sem isso, quem ainda não navegou continua preso ao `currentDay`, que o
+  // outro move ao concluir o dia.
+  useEffect(() => {
+    if (disabled || !couple || !couple.members?.includes(user.uid)) return;
+    if (couple.positions?.[user.uid] != null) return;
+    updateDoc(doc(db, "couples", couple.id), {
+      [`positions.${user.uid}`]: Math.max(1, Number(couple.currentDay) || 1),
+    }).catch((err) => console.error("Couple position error:", err));
+  }, [disabled, couple, user?.uid]);
+
   const profile = () => ({
     name: user.displayName || user.email?.split("@")[0] || "Alguém",
   });
@@ -98,6 +110,7 @@ export function useCouple(user) {
       planId: "casais",
       track,
       currentDay: 1,
+      positions: { [user.uid]: 1 },
       completions: { [user.uid]: [] },
       createdAt: serverTimestamp(),
     });
@@ -148,7 +161,12 @@ export function useCouple(user) {
     await setDoc(doc(db, "users", user.uid), { coupleId: null }, { merge: true });
   };
 
-  /** Marca o dia como concluído por mim. Avança quando todos marcaram. */
+  /**
+   * Marca o dia como concluído por mim. O dia corrente do casal avança
+   * quando os dois marcaram — mas isso é só o progresso compartilhado: a
+   * tela de cada um continua onde está, porque ninguém deve ser levado para
+   * o dia seguinte no meio de uma leitura pelo toque do outro.
+   */
   const completeDay = async (day, totalDays) => {
     if (!couple) return;
     const mine = couple.completions?.[user.uid] || [];
@@ -180,6 +198,7 @@ export function useCouple(user) {
     await updateDoc(doc(db, "couples", couple.id), {
       [`completions.${user.uid}`]: arrayRemove(day),
       currentDay: Math.min(couple.currentDay || 1, day),
+      [`positions.${user.uid}`]: day,
     });
   };
 
@@ -196,9 +215,19 @@ export function useCouple(user) {
     });
   };
 
+  /**
+   * Move o dia que EU estou lendo, não o do casal.
+   *
+   * Antes isso gravava `currentDay`, que é compartilhado: quem voltasse para
+   * o dia 4 arrastava o outro junto, e quem avançasse para o dia 5 empurrava
+   * o outro no meio da leitura. Cada um tem a sua posição em
+   * `positions.{uid}`; `currentDay` continua sendo o progresso do casal.
+   */
   const goToDay = async (day) => {
     if (!couple) return;
-    await updateDoc(doc(db, "couples", couple.id), { currentDay: day });
+    await updateDoc(doc(db, "couples", couple.id), {
+      [`positions.${user.uid}`]: day,
+    });
   };
 
   /**
@@ -219,6 +248,7 @@ export function useCouple(user) {
       track,
       currentDay: 1,
       completions: Object.fromEntries(couple.members.map((uid) => [uid, []])),
+      positions: Object.fromEntries(couple.members.map((uid) => [uid, 1])),
       // serverTimestamp() não é aceito dentro de elemento de array.
       laps: arrayUnion({
         track: couple.track || DEFAULT_TRACK,
@@ -230,8 +260,18 @@ export function useCouple(user) {
 
   const partnerUid = couple?.members.find((uid) => uid !== user?.uid) || null;
 
+  /**
+   * O dia que estou lendo. Casal criado antes das posições — ou parceiro que
+   * entrou depois — cai no dia corrente do casal, que é onde ele estaria de
+   * qualquer forma.
+   */
+  const myDay = couple
+    ? Math.max(1, Number(couple.positions?.[user?.uid] ?? couple.currentDay) || 1)
+    : 1;
+
   return {
     couple,
+    myDay,
     // Casal criado antes das trilhas não tem o campo, e o documento é
     // gravável pelos membros: valor fora da lista cai no padrão.
     track: TRACKS[couple?.track] ? couple.track : DEFAULT_TRACK,

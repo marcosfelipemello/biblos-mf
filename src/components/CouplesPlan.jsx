@@ -34,7 +34,9 @@ const par = (track) => (track === "noivos" ? "noivo(a)" : "cônjuge");
 export default function CouplesPlan({ user, onBack, goToBibleReference }) {
   const c = useCouple(user);
   const total = totalDays();
-  const day = Math.min(c.couple?.currentDay || 1, total);
+  // O dia da tela é o de quem está lendo (`myDay`), não o do casal: os dois
+  // compartilham o progresso, mas cada um navega no próprio ritmo.
+  const day = Math.min(c.myDay, total);
   const [hoje, setHoje] = useState(null);
 
   // Carrega só a fase que contém este dia, na trilha do casal — não o plano
@@ -603,13 +605,17 @@ function DayView({
           </div>
         )}
 
-        {euMarquei && !parceiroMarcou && isPaired && (
+        {/* Concluir não muda a página sozinho: quem terminou o dia decide
+            quando ir para o próximo, e o toque do outro nunca vira a página
+            de ninguém. */}
+        {euMarquei && day < total && (
           <button
             onClick={() => goToDay(day + 1)}
-            disabled={day === total}
-            className="w-full mt-3 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 disabled:opacity-40"
+            className="w-full mt-3 py-3 text-xs font-bold text-slate-400 hover:text-slate-600"
           >
-            Avançar mesmo assim →
+            {isPaired && !parceiroMarcou
+              ? "Avançar mesmo assim →"
+              : `Ir para o dia ${day + 1} →`}
           </button>
         )}
       </div>
