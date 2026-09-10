@@ -9,6 +9,7 @@ import {
   onSnapshot,
   arrayUnion,
   arrayRemove,
+  deleteField,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -155,8 +156,19 @@ export function useCouple(user) {
 
   const leaveCouple = async () => {
     if (!couple) return;
+    const diasComNota = Object.keys(couple.notes || {}).filter(
+      (day) => couple.notes[day]?.[user.uid] != null
+    );
+    for (const day of diasComNota) {
+      await updateDoc(doc(db, "couples", couple.id), {
+        [`notes.${day}.${user.uid}`]: deleteField(),
+      });
+    }
     await updateDoc(doc(db, "couples", couple.id), {
       members: arrayRemove(user.uid),
+      [`profiles.${user.uid}`]: deleteField(),
+      [`completions.${user.uid}`]: deleteField(),
+      [`positions.${user.uid}`]: deleteField(),
     });
     await setDoc(doc(db, "users", user.uid), { coupleId: null }, { merge: true });
   };
@@ -240,6 +252,7 @@ export function useCouple(user) {
    */
   const setTrack = async (track, { restart = false } = {}) => {
     if (!couple) return;
+    if (!TRACKS[track]) return;
     if (!restart) {
       await updateDoc(doc(db, "couples", couple.id), { track });
       return;

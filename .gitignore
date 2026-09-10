@@ -25,3 +25,6 @@ dist-ssr
 
 # Variáveis locais (netlify dev)
 .env
+
+# Auditoria interna: nao publicar em repo publico
+BIBLOS-BLINDAGEM-01.md

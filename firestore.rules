@@ -75,6 +75,101 @@ service cloud.firestore {
     // PLANO DO CASAL (COMPARTILHADO)
     // ========================================
 
+    function coupleSchemaOk() {
+      let d = request.resource.data;
+      return (!('track' in d) || d.track in ['casados', 'noivos'])
+        && (!('currentDay' in d) ||
+            (d.currentDay is int && d.currentDay >= 1 && d.currentDay <= 1000))
+        && (!('positions' in d) ||
+            (d.positions.keys().size() <= 2 &&
+             (!(request.auth.uid in d.positions) ||
+              (d.positions[request.auth.uid] is int &&
+               d.positions[request.auth.uid] >= 1 &&
+               d.positions[request.auth.uid] <= 1000))))
+        && (!('completions' in d) ||
+            (d.completions.keys().size() <= 2 &&
+             (!(request.auth.uid in d.completions) ||
+              (d.completions[request.auth.uid] is list &&
+               d.completions[request.auth.uid].size() <= 1000))))
+        && (!('notes' in d) || d.notes.keys().size() <= 1000)
+        && (!('laps' in d) || (d.laps is list && d.laps.size() <= 100));
+    }
+
+    function membersOk() {
+      let d = request.resource.data;
+      return d.members.hasOnly(resource.data.members) &&
+        (d.members == resource.data.members ||
+         (d.members.size() == resource.data.members.size() - 1 &&
+          !(request.auth.uid in d.members)));
+    }
+
+    function restartOk() {
+      let d = request.resource.data;
+      let paired = d.members.size() > 1;
+      let other = paired
+        ? (d.members[0] == request.auth.uid ? d.members[1] : d.members[0])
+        : request.auth.uid;
+      return d.currentDay == 1 &&
+        request.auth.uid in d.positions &&
+        request.auth.uid in d.completions &&
+        d.positions[request.auth.uid] == 1 &&
+        d.completions[request.auth.uid] == [] &&
+        (!paired ||
+         (other in d.positions &&
+          other in d.completions &&
+          d.positions[other] == 1 &&
+          d.completions[other] == []));
+    }
+
+    function memberUpdateOk() {
+      let d = request.resource.data;
+      let changed = d.diff(resource.data).affectedKeys();
+      return coupleSchemaOk()
+        && changed.hasOnly(['members', 'profiles', 'track', 'currentDay',
+                            'positions', 'completions', 'notes', 'laps'])
+        && (!changed.hasAny(['members']) || membersOk())
+        && (!changed.hasAny(['track']) || d.track in ['casados', 'noivos'])
+        && (!changed.hasAny(['currentDay']) ||
+            (d.currentDay is int && d.currentDay >= 1 && d.currentDay <= 1000))
+        && (!changed.hasAny(['profiles']) ||
+            !('profiles' in resource.data) ||
+            d.profiles.diff(resource.data.profiles).affectedKeys()
+              .hasOnly([request.auth.uid]))
+        && (!changed.hasAny(['positions']) || restartOk() ||
+            (!('positions' in resource.data) &&
+             d.positions.keys().hasOnly([request.auth.uid])) ||
+            (('positions' in resource.data) &&
+             d.positions.diff(resource.data.positions).affectedKeys()
+               .hasOnly([request.auth.uid])))
+        && (!changed.hasAny(['completions']) || restartOk() ||
+            (!('completions' in resource.data) &&
+             d.completions.keys().hasOnly([request.auth.uid])) ||
+            (('completions' in resource.data) &&
+             d.completions.diff(resource.data.completions).affectedKeys()
+               .hasOnly([request.auth.uid])))
+        && (!changed.hasAny(['notes']) ||
+            (!('notes' in resource.data) && d.notes.keys().size() <= 1) ||
+            (('notes' in resource.data) &&
+             d.notes.diff(resource.data.notes).affectedKeys().size() <= 1))
+        && (!changed.hasAny(['laps']) ||
+            (d.laps is list && d.laps.size() <= 100 && restartOk()));
+    }
+
+    function joinOk() {
+      let d = request.resource.data;
+      return d.members == resource.data.members.concat([request.auth.uid])
+        && d.diff(resource.data).affectedKeys()
+             .hasOnly(['members', 'profiles', 'completions'])
+        && (!('profiles' in resource.data) ||
+            d.profiles.diff(resource.data.profiles).affectedKeys()
+              .hasOnly([request.auth.uid]))
+        && (!('completions' in resource.data) ||
+            d.completions.diff(resource.data.completions).affectedKeys()
+              .hasOnly([request.auth.uid]))
+        && d.completions[request.auth.uid] == []
+        && coupleSchemaOk();
+    }
+
     // O ID do documento é o código de convite. Leitura liberada enquanto
     // houver vaga, para o cônjuge conseguir entrar com o código; depois de
     // pareado, só os dois membros acessam.
@@ -88,15 +183,16 @@ service cloud.firestore {
                       resource.data.members.size() < 2);
 
       allow create: if request.auth != null &&
-                       request.resource.data.members == [request.auth.uid];
+                       request.resource.data.members == [request.auth.uid] &&
+                       coupleSchemaOk();
 
-      // Membro altera à vontade; quem está de fora só pode se acrescentar
-      // à lista quando existe exatamente uma vaga.
+      // Membro altera só o que é dele (ou reinicia a volta dos dois, com o
+      // formato exato do restart); quem está de fora só se acrescenta quando
+      // existe exatamente uma vaga.
       allow update: if request.auth != null &&
-                       (request.auth.uid in resource.data.members ||
-                        (resource.data.members.size() == 1 &&
-                         request.resource.data.members ==
-                           resource.data.members.concat([request.auth.uid])));
+                       ((request.auth.uid in resource.data.members &&
+                         memberUpdateOk()) ||
+                        (resource.data.members.size() == 1 && joinOk()));
 
       allow delete: if false;
     }

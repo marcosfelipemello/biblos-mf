@@ -165,7 +165,9 @@ export default function Atlas({
                 if (!finalItem.origin_ref) {
                   try {
                     const term = finalItem.search_term || finalItem.name;
-                    const found = await searchVerses(term);
+                    const found = await searchVerses(term, {
+                      allowRegex: true,
+                    });
                     if (found && found.length > 0) {
                       const first = found[0];
                       finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
@@ -215,6 +217,8 @@ export default function Atlas({
                     type: "place", // Default to place/other
                     origin_ref: null,
                     search_term: term,
+                    // Termo digitado: nunca pode virar regex.
+                    dynamic: true,
                   };
                   const found = await searchVerses(term);
                   if (found && found.length > 0) {
@@ -303,7 +307,9 @@ export default function Atlas({
               const term =
                 selectedEntity.search_term ||
                 selectedEntity.name.split("(")[0].trim();
-              searchVerses(term).then((res) => {
+              searchVerses(term, {
+                allowRegex: !selectedEntity.dynamic,
+              }).then((res) => {
                 setVerses(res);
                 setLoadingVerses(false);
               });

@@ -15,13 +15,11 @@ export function useHighlights(user, book, chapter) {
   const [highlights, setHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const disabled = !user || user.isAnonymous;
+
   // Subscribe to highlights
   useEffect(() => {
-    if (!user || user.isAnonymous) {
-      setHighlights([]);
-      setLoading(false);
-      return;
-    }
+    if (disabled) return;
 
     let q;
     if (book && chapter) {
@@ -36,17 +34,24 @@ export function useHighlights(user, book, chapter) {
       q = query(collection(db, "users", user.uid, "highlights"));
     }
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setHighlights(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setHighlights(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Highlights error:", err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, [user, book, chapter]);
+  }, [disabled, user?.uid, book, chapter]);
 
   const toggleHighlight = async (verse, color = "amber") => {
     if (!user || user.isAnonymous) return;
@@ -86,5 +91,10 @@ export function useHighlights(user, book, chapter) {
     return highlights.find((h) => h.verse === verse);
   };
 
-  return { highlights, toggleHighlight, isHighlighted, loading };
+  return {
+    highlights: disabled ? [] : highlights,
+    toggleHighlight,
+    isHighlighted,
+    loading: disabled ? false : loading,
+  };
 }

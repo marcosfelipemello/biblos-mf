@@ -71,123 +71,76 @@ export default function AdminPanel({ onBack }) {
   const handleSeedData = async () => {
     if (
       !window.confirm(
-        "ATENÇÃO: Isso vai executar uma LIMPEZA PROFUNDA no banco.\n\n1. Deletar TODAS as entidades antigas.\n2. Deletar TODOS os versículos antigos.\n3. Inserir a nova Base de Conhecimento.\n\nIsso pode levar alguns segundos. Continuar?"
+        "Isso vai sincronizar o banco com a Base de Conhecimento:\n\n1. Gravar/atualizar todas as entidades e versículos.\n2. Remover somente o que não existe mais na base.\n\nO banco continua no ar durante a operação. Continuar?"
       )
     )
       return;
     setLoading(true);
-    setMsg({ type: "info", text: "Iniciando protocolo de limpeza..." });
+    setMsg({ type: "info", text: "Iniciando sincronização..." });
 
     try {
       // ~208 KB que só o admin usa: carrega sob demanda.
       const { KNOWLEDGE_BASE } = await import("../data/knowledgeBase");
 
-      // Funcao auxiliar para deletar em lotes e reportar progresso
-      const deleteCollectionSafe = async (coll) => {
-        setMsg({ type: "info", text: `Lendo coleção ${coll}...` });
-        const q = await getDocs(collection(db, coll));
-        const docs = q.docs;
-        const total = docs.length;
+      const entities = KNOWLEDGE_BASE.entities || [];
+      const verses = KNOWLEDGE_BASE.verses || [];
 
-        if (total === 0) {
-          setMsg({ type: "info", text: `Coleção ${coll} já estava vazia.` });
-          return;
-        }
-
-        setMsg({
-          type: "info",
-          text: `Encontrados ${total} itens em ${coll}. Exterminando... 🗑️`,
-        });
-
-        const chunk = 400;
-        let deletedCount = 0;
-
-        for (let i = 0; i < total; i += chunk) {
-          const batch = writeBatch(db);
-          const currentChunk = docs.slice(i, i + chunk);
-
-          currentChunk.forEach((d) => batch.delete(d.ref));
-
-          await batch.commit();
-          deletedCount += currentChunk.length;
-          setMsg({
-            type: "info",
-            text: `Deletados ${deletedCount}/${total} de ${coll}...`,
-          });
-        }
-        setMsg({ type: "success", text: `Coleção ${coll} limpa com sucesso!` });
-      };
-
-      // 1. Limpeza
-      await deleteCollectionSafe("entities");
-      await deleteCollectionSafe("verses");
-
-      // 2. Verificação de Segurança (Nuclear Check)
-      // Garantir que não sobrou nada "zumbi"
-      setMsg({ type: "info", text: "Verificando se sobrou algum zumbi... 🧟" });
-      const checkQ = await getDocs(collection(db, "entities"));
-      if (!checkQ.empty) {
+      if (entities.length === 0) {
         throw new Error(
-          "A limpeza falhou! Ainda existem itens no banco. Tente novamente."
+          "Base de conhecimento vazia: nada foi apagado. Operação cancelada."
         );
       }
 
-      // 3. Inserção
-      setMsg({
-        type: "info",
-        text: "Banco limpo! Inserindo nova inteligência... 🧠",
-      });
+      const chunk = 350;
+      const idsValidos = (items) =>
+        new Set(items.filter((item) => item?.id).map((item) => item.id));
 
-      const entities = KNOWLEDGE_BASE.entities;
-      const totalEnt = entities.length;
-      const chunk = 350; // Margem de segurança menor
-
-      for (let i = 0; i < totalEnt; i += chunk) {
-        const batch = writeBatch(db);
-        const currentChunk = entities.slice(i, i + chunk);
-
-        currentChunk.forEach((ent) => {
-          const docRef = doc(db, "entities", ent.id);
-          batch.set(docRef, ent);
-        });
-
-        await batch.commit();
-        setMsg({
-          type: "info",
-          text: `Inserindo entidades: ${Math.min(
-            i + chunk,
-            totalEnt
-          )}/${totalEnt}`,
-        });
-      }
-
-      // Verses
-      if (KNOWLEDGE_BASE.verses && KNOWLEDGE_BASE.verses.length > 0) {
-        const verses = KNOWLEDGE_BASE.verses;
-        const totalVer = verses.length;
-        setMsg({ type: "info", text: "Inserindo versículos curados..." });
-
-        for (let i = 0; i < totalVer; i += chunk) {
+      const upsertAll = async (coll, items) => {
+        const valid = items.filter((item) => item?.id);
+        for (let i = 0; i < valid.length; i += chunk) {
           const batch = writeBatch(db);
-          const currentChunk = verses.slice(i, i + chunk);
-          currentChunk.forEach((ver) => {
-            const docRef = doc(db, "verses", ver.id);
-            batch.set(docRef, ver);
+          valid.slice(i, i + chunk).forEach((item) => {
+            batch.set(doc(db, coll, item.id), item);
           });
           await batch.commit();
           setMsg({
             type: "info",
-            text: `Inserindo versículos: ${Math.min(
+            text: `Gravando ${coll}: ${Math.min(
               i + chunk,
-              totalVer
-            )}/${totalVer}`,
+              valid.length
+            )}/${valid.length}`,
           });
         }
+      };
+
+      const pruneStale = async (coll, items) => {
+        const validIds = idsValidos(items);
+        const snap = await getDocs(collection(db, coll));
+        const stale = snap.docs.filter((d) => !validIds.has(d.id));
+        for (let i = 0; i < stale.length; i += 400) {
+          const batch = writeBatch(db);
+          stale.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+          await batch.commit();
+        }
+        setMsg({
+          type: "info",
+          text: `Obsoletos removidos de ${coll}: ${stale.length}`,
+        });
+      };
+
+      setMsg({ type: "info", text: "Gravando entidades..." });
+      await upsertAll("entities", entities);
+      await pruneStale("entities", entities);
+
+      if (verses.length > 0) {
+        setMsg({ type: "info", text: "Gravando versículos..." });
+        await upsertAll("verses", verses);
+        await pruneStale("verses", verses);
       }
 
       setMsg({
         type: "success",
-        text: "SUCESSO TOTA! 🎉 Banco de Dados 100% Sincronizado e Limpo.",
+        text: "Base sincronizada sem janela vazia.",
       });
     } catch (error) {
       console.error(error);
@@ -212,7 +165,7 @@ export default function AdminPanel({ onBack }) {
             <ShieldCheck size={20} />
           </div>
           <h2 className="text-xl font-bold text-slate-900">
-            Painel Admin v2.0 (Limpeza Profunda)
+            Painel Admin v2.0 (Sincronização)
           </h2>
         </div>
 
@@ -225,8 +178,8 @@ export default function AdminPanel({ onBack }) {
             </h3>
           </div>
           <p className="text-xs text-amber-800 mb-4 leading-relaxed">
-            Importe a biblioteca completa de personagens, locais e artefatos
-            bíblicos reais.
+            Sincronize a biblioteca completa de personagens, locais e artefatos
+            bíblicos reais sem tirar o banco do ar.
           </p>
           <button
             onClick={handleSeedData}
@@ -238,7 +191,7 @@ export default function AdminPanel({ onBack }) {
             ) : (
               <Database size={16} />
             )}
-            Importar Dados Bíblicos
+            Sincronizar Dados Bíblicos
           </button>
         </div>
 

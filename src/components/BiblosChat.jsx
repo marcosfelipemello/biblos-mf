@@ -125,6 +125,11 @@ export default function BiblosChat() {
                       .map((part, i) =>
                         i % 2 === 1 ? <strong key={i}>{part}</strong> : part
                       )}
+                    {msg.failed && (
+                      <span className="block mt-1 text-[10px] font-bold uppercase opacity-70">
+                        Não enviada
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}

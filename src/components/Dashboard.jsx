@@ -56,6 +56,7 @@ export default function Dashboard() {
   const bibleRef = React.useRef(null);
   const devotionalRef = React.useRef(null);
   const hymnalRef = React.useRef(null);
+  const historyDepthRef = React.useRef(0);
 
   const [atlasLenis, setAtlasLenis] = useState(null);
   const [bibleLenis, setBibleLenis] = useState(null);
@@ -160,12 +161,14 @@ export default function Dashboard() {
 
   // RESET HEADER & NAV when switching tabs
   // (Because Devotionals component stays mounted but hidden/inactive)
-  useEffect(() => {
+  const [viewAnterior, setViewAnterior] = useState(view);
+  if (view !== viewAnterior) {
+    setViewAnterior(view);
     if (view !== "devotionals") {
       setIsHeaderVisible(true);
       setIsNavVisible(true);
     }
-  }, [view]);
+  }
 
   const goBack = () => {
     if (view === "details") {
@@ -196,16 +199,25 @@ export default function Dashboard() {
 
   // EXIT CONFIRMATION LOGIC
   useEffect(() => {
-    window.history.pushState(null, document.title, window.location.href);
+    const pushGuard = () => {
+      window.history.pushState(null, document.title, window.location.href);
+      historyDepthRef.current += 1;
+    };
+
+    pushGuard();
 
     const handlePopState = () => {
+      // A volta consumiu a entrada que o guard tinha empilhado: sem descontar,
+      // o contador cresce a cada toque em "voltar" e a saída passa direto pelo
+      // histórico anterior ao app.
+      historyDepthRef.current -= 1;
       // If in neutral, confirm exit
       if (view === "neutral" && !showExitConfirm) {
-        window.history.pushState(null, document.title, window.location.href);
+        pushGuard();
         setShowExitConfirm(true);
       } else if (view !== "neutral") {
         // If inside app, handle navigation
-        window.history.pushState(null, document.title, window.location.href);
+        pushGuard();
         goBack();
       }
     };
@@ -368,7 +380,7 @@ export default function Dashboard() {
           onCancel={() => setShowExitConfirm(false)}
           onConfirm={() => {
             setShowExitConfirm(false);
-            window.history.go(-3);
+            window.history.go(-(historyDepthRef.current || 1));
             window.close();
           }}
         />

@@ -16,29 +16,34 @@ export function usePrayers(user) {
   const [prayers, setPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const disabled = !user || user.isAnonymous;
+
   useEffect(() => {
-    if (!user || user.isAnonymous) {
-      setPrayers([]);
-      setLoading(false);
-      return;
-    }
+    if (disabled) return;
 
     const q = query(
       collection(db, "users", user.uid, "prayers"),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPrayers(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPrayers(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Prayers error:", err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, [user]);
+  }, [disabled, user?.uid]);
 
   const addPrayer = async (text) => {
     if (!user) return;
@@ -62,5 +67,11 @@ export function usePrayers(user) {
     await deleteDoc(doc(db, "users", user.uid, "prayers", id));
   };
 
-  return { prayers, loading, addPrayer, toggleStatus, deletePrayer };
+  return {
+    prayers: disabled ? [] : prayers,
+    loading: disabled ? false : loading,
+    addPrayer,
+    toggleStatus,
+    deletePrayer,
+  };
 }

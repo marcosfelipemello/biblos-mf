@@ -16,33 +16,38 @@ export function useJournal(user) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const disabled = !user || user.isAnonymous;
+
   useEffect(() => {
-    if (!user || user.isAnonymous) {
-      setEntries([]);
-      setLoading(false);
-      return;
-    }
+    if (disabled) return;
 
     const q = query(
       collection(db, "users", user.uid, "journal"),
       orderBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => {
-        const d = doc.data();
-        return {
-          id: doc.id,
-          ...d,
-          createdAt: d.createdAt?.toDate ? d.createdAt.toDate() : new Date(), // Handle Firestore Timestamp
-        };
-      });
-      setEntries(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => {
+          const d = doc.data();
+          return {
+            id: doc.id,
+            ...d,
+            createdAt: d.createdAt?.toDate ? d.createdAt.toDate() : new Date(), // Handle Firestore Timestamp
+          };
+        });
+        setEntries(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Journal error:", err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, [user]);
+  }, [disabled, user?.uid]);
 
   const addEntry = async (content, title = "") => {
     if (!user) return;
@@ -67,5 +72,11 @@ export function useJournal(user) {
     });
   };
 
-  return { entries, loading, addEntry, deleteEntry, updateEntry };
+  return {
+    entries: disabled ? [] : entries,
+    loading: disabled ? false : loading,
+    addEntry,
+    deleteEntry,
+    updateEntry,
+  };
 }

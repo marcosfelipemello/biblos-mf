@@ -38,9 +38,11 @@ export const useBibleApi = () => {
   /**
    * Searches for a term in the entire Bible (Local JSON).
    * @param {string} term - The term to search for (e.g., "Jesus").
+   * @param {{ allowRegex?: boolean }} options - Só o conteúdo curado do app
+   *   (knowledgeBase.search_term) pode usar o prefixo "regex:".
    * @returns {Promise<Array>} - Array of found verses.
    */
-  const searchVerses = useCallback(async (term) => {
+  const searchVerses = useCallback(async (term, { allowRegex = false } = {}) => {
     if (!term) return [];
     setLoading(true);
     setError(null);
@@ -58,10 +60,11 @@ export const useBibleApi = () => {
       let regex;
 
       // Check for advanced regex mode
-      if (term.startsWith("regex:")) {
-        // Extract pattern, preserving raw regex
-        const rawPattern = term.replace("regex:", "");
-        // Use exactly as provided (case insensitive + unicode)
+      if (allowRegex && term.startsWith("regex:")) {
+        const rawPattern = term.slice("regex:".length).trim();
+        if (rawPattern.length > 200) {
+          throw new Error("Padrão de busca longo demais.");
+        }
         regex = new RegExp(rawPattern, "iu");
       } else {
         // Original logic
