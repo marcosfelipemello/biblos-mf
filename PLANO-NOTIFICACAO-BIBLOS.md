@@ -238,12 +238,18 @@ chamada sem token válido, ou de quem não é do casal, é recusada.
 
 | Etapa | Estado | Executor | Data | Commit |
 |---|---|---|---|---|
-| 1 — permissão e token no aparelho | ⏳ pendente | | | |
-| 2 — envio no servidor + Pão Diário (9h) | ⏳ pendente | | | |
+| 1 — permissão e token no aparelho | ✅ feito e provado em produção (2 aparelhos) | agy + fiscal | 11/09/2026 | `e5861cb` |
+| 2 — envio no servidor + Pão Diário (9h) | 🔨 metade: `_push.js` feito (pelo fiscal, era o instrumento do diagnóstico); falta a função agendada | fiscal | 11/09/2026 | (este commit) |
 | 3 — plano solo parado há 2 dias (19h) | ⏳ pendente | | | |
 | 4 — casal: lembrete e "seu par já leu" (20h) | ⏳ pendente | | | |
 | 5 — aviso na hora em que o cônjuge conclui | ⏳ pendente | | | |
 | 6 — desligar, e a verificação da decisão | ⏳ pendente | | | |
+
+**Achado de 11/09/2026 — o `firebase-admin` NÃO pode ser empacotado.** Empacotado pelo
+bundler do Netlify ele quebra ao buscar o token OAuth (`app/invalid-credential` — "Class
+extends value #<Object> is not a constructor"), embora a leitura do Firestore continue
+funcionando, o que faz o erro parecer credencial errada. A cura está no `netlify.toml`:
+`external_node_modules = ["firebase-admin"]`. Não desfaça.
 
 **Dependências:** a Etapa 1 não fecha sem a chave VAPID; a 2, a 3, a 4 e a 5 não fecham sem a
 chave de serviço no Netlify. As duas são passos manuais do dono, listados lá em cima.
