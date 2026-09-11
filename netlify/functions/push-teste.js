@@ -1,7 +1,8 @@
 // Disparo manual de notificação, só para diagnóstico.
 // Protegido por segredo: sem ele, qualquer um na internet mandaria notificação
 // para qualquer usuário do app.
-import { enviarPara } from "./_push.js";
+import { enviarPara } from "../lib/push.js";
+import { executarPaoDiario } from "../lib/pao-diario.js";
 
 const json = (status, corpo) => ({
   statusCode: status,
@@ -17,15 +18,26 @@ export const handler = async (event) => {
     return json(401, { erro: "Segredo ausente ou errado." });
   }
 
-  let uid, title, body;
+  let uid, title, body, job;
   try {
-    ({ uid, title = "Biblos", body = "Teste de notificação" } = JSON.parse(
+    ({ uid, title = "Biblos", body = "Teste de notificação", job } = JSON.parse(
       event.body || "{}"
     ));
   } catch {
     return json(400, { erro: "Corpo inválido." });
   }
-  if (!uid) return json(400, { erro: "Informe o uid." });
+
+  // Execução de rotina agendada sob demanda para teste e validação
+  if (job === "pao-diario") {
+    try {
+      const placar = await executarPaoDiario();
+      return json(200, { job: "pao-diario", ...placar });
+    } catch (err) {
+      return json(500, { erro: err?.message, codigo: err?.errorInfo?.code });
+    }
+  }
+
+  if (!uid) return json(400, { erro: "Informe o uid ou job." });
 
   try {
     return json(200, await enviarPara(uid, { title, body }));

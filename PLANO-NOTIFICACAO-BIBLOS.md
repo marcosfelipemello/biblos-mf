@@ -239,7 +239,7 @@ chamada sem token válido, ou de quem não é do casal, é recusada.
 | Etapa | Estado | Executor | Data | Commit |
 |---|---|---|---|---|
 | 1 — permissão e token no aparelho | ✅ feito e provado em produção (2 aparelhos) | agy + fiscal | 11/09/2026 | `e5861cb` |
-| 2 — envio no servidor + Pão Diário (9h) | 🔨 metade: `_push.js` feito (pelo fiscal, era o instrumento do diagnóstico); falta a função agendada | fiscal | 11/09/2026 | (este commit) |
+| 2 — envio no servidor + Pão Diário (9h) | ✅ feito e provado: disparo sob demanda enviou (1/1) e a repetição imediata pulou | fiscal (`push.js`) + agy (agendada) | 11/09/2026 | `1bcda48` + (este commit) |
 | 3 — plano solo parado há 2 dias (19h) | ⏳ pendente | | | |
 | 4 — casal: lembrete e "seu par já leu" (20h) | ⏳ pendente | | | |
 | 5 — aviso na hora em que o cônjuge conclui | ⏳ pendente | | | |
