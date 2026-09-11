@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Bell,
   X,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 export default function NotificationModal({ isOpen, onClose, push }) {
+  const [confirmingUnsubscribe, setConfirmingUnsubscribe] = useState(false);
+
   if (!isOpen) return null;
 
   const {
@@ -21,17 +23,23 @@ export default function NotificationModal({ isOpen, onClose, push }) {
     error,
     preferences,
     subscribe,
+    unsubscribe,
     updatePreferences,
   } = push;
 
   const isDenied = permission === "denied";
+
+  const handleClose = () => {
+    setConfirmingUnsubscribe(false);
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 p-6 transform transition-all animate-scale-in relative">
         {/* Botão Fechar */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           title="Fechar"
         >
@@ -172,9 +180,48 @@ export default function NotificationModal({ isOpen, onClose, push }) {
 
         {/* Botão de ação */}
         {isSubscribed ? (
-          <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-100">
-            <Check size={16} />
-            <span>Notificações ativas neste aparelho</span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-100">
+              <Check size={16} />
+              <span>Notificações ativas neste aparelho</span>
+            </div>
+
+            {!confirmingUnsubscribe ? (
+              <button
+                type="button"
+                onClick={() => setConfirmingUnsubscribe(true)}
+                disabled={loading}
+                className="w-full text-center text-[11px] text-slate-400 hover:text-red-500 py-1 transition-colors"
+              >
+                Parar de receber neste aparelho
+              </button>
+            ) : (
+              <div className="p-3 rounded-2xl bg-red-50 border border-red-100 space-y-2">
+                <p className="text-xs text-red-700 font-medium text-center">
+                  Deseja mesmo parar de receber neste aparelho?
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingUnsubscribe(false)}
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-white text-slate-600 border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await unsubscribe();
+                      setConfirmingUnsubscribe(false);
+                    }}
+                    disabled={loading}
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? "Parando..." : "Confirmar"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div>

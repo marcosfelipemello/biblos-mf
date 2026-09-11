@@ -8,6 +8,11 @@
   to = "/.netlify/functions/chat"
   status = 200
 
+[[redirects]]
+  from = "/api/avisar-par"
+  to = "/.netlify/functions/avisar-par"
+  status = 200
+
 # O firebase-admin não pode ser empacotado pelo bundler: empacotado, ele quebra
 # ao buscar o token OAuth ("Class extends value #<Object> is not a constructor").
 # external_node_modules manda o Netlify subir o pacote como está, do node_modules.

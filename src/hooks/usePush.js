@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { getMessaging, getToken, isSupported } from "firebase/messaging";
+import {
+  getMessaging,
+  getToken,
+  deleteToken,
+  isSupported,
+} from "firebase/messaging";
 import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
@@ -198,7 +204,60 @@ export function usePush(user) {
     }
   }, [user, supported]);
 
-  // 4. Atualização de preferências (três chaves)
+  // 4. Descadastramento do aparelho (parar de receber neste dispositivo)
+  const unsubscribe = useCallback(async () => {
+    if (!user || user.isAnonymous) return false;
+
+    setLoading(true);
+    setError(null);
+
+    const currentToken =
+      token ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("biblos_push_token")
+        : null);
+
+    try {
+      // Passo A: Exclui o token no Firebase Cloud Messaging
+      try {
+        const messaging = getMessaging(app);
+        await deleteToken(messaging);
+      } catch (err) {
+        console.warn("Erro ao deletar token no FCM:", err);
+      }
+
+      // Passo B: Remove o token da subcoleção no Firestore
+      if (currentToken) {
+        try {
+          const tokenRef = doc(
+            db,
+            "users",
+            user.uid,
+            "pushTokens",
+            currentToken
+          );
+          await deleteDoc(tokenRef);
+        } catch (err) {
+          console.warn("Erro ao apagar token no Firestore:", err);
+        }
+      }
+
+      // Passo C: Limpa localStorage e zera o estado local
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("biblos_push_token");
+      }
+      setToken(null);
+      setLoading(false);
+      return true;
+    } catch (err) {
+      console.error("Erro ao desinscrever notificações:", err);
+      setError(err?.message || "Falha ao desativar notificações.");
+      setLoading(false);
+      return false;
+    }
+  }, [user, token]);
+
+  // 5. Atualização de preferências (três chaves)
   const updatePreferences = useCallback(
     async (newPrefs) => {
       if (!user || user.isAnonymous) return;
@@ -225,6 +284,7 @@ export function usePush(user) {
     error,
     preferences,
     subscribe,
+    unsubscribe,
     updatePreferences,
   };
 }

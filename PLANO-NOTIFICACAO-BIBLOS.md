@@ -242,8 +242,8 @@ chamada sem token válido, ou de quem não é do casal, é recusada.
 | 2 — envio no servidor + Pão Diário (9h) | ✅ feito e provado: disparo sob demanda enviou (1/1) e a repetição imediata pulou | fiscal (`push.js`) + agy (agendada) | 11/09/2026 | `1bcda48` + (este commit) |
 | 3 — plano solo parado há 2 dias (19h) | ✅ feito; rodou em produção sem erro, mas **entrega não provada** (ninguém tinha plano parado há 2 dias) | agy | 11/09/2026 | (este commit) |
 | 4 — casal: lembrete e "seu par já leu" (20h) | ✅ feito e provado: enviou (1/1) e a repetição pulou; `test_push_decisao.js` cobre as 3 linhas da tabela | agy | 11/09/2026 | (este commit) |
-| 5 — aviso na hora em que o cônjuge conclui | ⏳ pendente | | | |
-| 6 — desligar, e a verificação da decisão | 🔨 metade: as 3 chaves e o teste da decisão já existem; falta o "parar de receber NESTE aparelho" (apagar o token) | agy | 11/09/2026 | (este commit) |
+| 5 — aviso na hora em que o cônjuge conclui | ✅ feito; endpoint recusa quem não tem token válido (401) e GET (405), provado em produção | agy + fiscal | 11/09/2026 | (este commit) |
+| 6 — desligar, e a verificação da decisão | ✅ feito: 3 chaves, "parar neste aparelho" com confirmação, e `test_push_decisao.js` | agy | 11/09/2026 | (este commit) |
 
 **Achado de 11/09/2026 — o `firebase-admin` NÃO pode ser empacotado.** Empacotado pelo
 bundler do Netlify ele quebra ao buscar o token OAuth (`app/invalid-credential` — "Class
@@ -258,3 +258,36 @@ chave de serviço no Netlify. As duas são passos manuais do dono, listados lá 
 escolhido pelo usuário, som e vibração personalizados, e resumo semanal. Nada disso foi
 pedido — entra num `PLANO-NOTIFICACAO-BIBLOS-02` se fizer falta depois de a primeira versão
 rodar.
+
+
+---
+
+## Fechamento (11/09/2026)
+
+**As seis etapas estão no ar.** Três horários vivos (9h Pão Diário, 19h plano parado, 20h casal)
+e um aviso instantâneo quando o cônjuge conclui o dia.
+
+**Dois defeitos de empacotamento que custaram caro e não podem se perder:**
+1. `firebase-admin` empacotado quebra ao pedir o token OAuth (`app/invalid-credential`, "Class
+   extends value #<Object> is not a constructor"). Cura: `external_node_modules` no `netlify.toml`.
+   O erro MENTE: a leitura do Firestore continua funcionando, então parece credencial errada.
+2. `firebase-admin/auth` arrasta o `jose`, que só existe como ESM e derruba a função com 502
+   (`require() of ES Module`). Marcar o `jose` como externo NÃO resolveu. Cura: não usar o
+   admin/auth — o `avisar-par.js` verifica o ID token pelo endpoint público do Google
+   (`identitytoolkit accounts:lookup`), com um fetch e zero dependência.
+
+**O que o fiscal corrigiu na entrega do agy (etapas 5 e 6):**
+- a resposta do `avisar-par` devolvia o objeto inteiro do envio, que traz os **tokens dos aparelhos
+  do destinatário**. Agora devolve só o placar.
+- faltava barrar o aviso quando o destinatário JÁ concluiu aquele dia. Sem isso, quem concluiu dez
+  dias podia chamar a função dez vezes, um dia por chamada, e metralhar o celular do par — a chave
+  `lastPar` sozinha não barra, porque muda a cada dia.
+
+**Pendências deixadas de propósito:**
+- `netlify/functions/push-teste.js` continua no ar, protegido por segredo (`PUSH_TEST_SECRET`).
+  É o único jeito de disparar as rotinas sem esperar o horário. Apagar quando os três horários
+  tiverem rodado sozinhos pelo menos uma vez.
+- A entrega do **plano parado** nunca foi provada: ninguém no banco tinha plano parado há 2 dias.
+- Fora deste plano: `GROQ_API_KEY` não está configurada no Netlify (o chat do app responde 500), e
+  os ícones do PWA (`pwa-192x192.png`, `pwa-512x512.png`, `apple-touch-icon.png`) prometidos no
+  `vite.config.js` não existem — o que afeta o ícone da notificação no Android.

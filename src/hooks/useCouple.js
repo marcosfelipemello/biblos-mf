@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../config/firebase";
+import { db, auth } from "../config/firebase";
 import { TRACKS, DEFAULT_TRACK } from "../data/couplesPlan";
 import {
   doc,
@@ -194,6 +194,33 @@ export function useCouple(user) {
     }
 
     await updateDoc(doc(db, "couples", couple.id), updates);
+
+    // Dispara aviso ao parceiro em segundo plano (sem travar a interface)
+    try {
+      auth.currentUser
+        ?.getIdToken()
+        .then((idToken) => {
+          if (!idToken) return;
+          fetch("/api/avisar-par", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ coupleId: couple.id, dia: day }),
+          }).catch((err) => {
+            console.warn("[useCouple] Falha na rede ao avisar par:", err);
+          });
+        })
+        .catch((err) => {
+          console.warn(
+            "[useCouple] Não foi possível obter token para avisar par:",
+            err
+          );
+        });
+    } catch (err) {
+      console.warn("[useCouple] Erro ao disparar aviso ao par:", err);
+    }
   };
 
   /**
