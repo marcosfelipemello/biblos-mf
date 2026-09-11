@@ -69,6 +69,14 @@ service cloud.firestore {
       match /planProgress/{planId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Tokens de Web Push para notificações.
+      // `write` (e não só `create`): reativar as notificações no MESMO aparelho
+      // devolve o MESMO token, e regravar um documento que já existe conta como
+      // update no Firestore — com `create` sozinho, a segunda ativação era negada.
+      match /pushTokens/{token} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // ========================================

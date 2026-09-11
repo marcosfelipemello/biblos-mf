@@ -24,3 +24,15 @@ export const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Error setting persistence:", error);
 });
+
+/**
+ * Chave pública Web Push (VAPID).
+ * Gerada no Console do Firebase:
+ * Configurações do projeto -> Cloud Messaging -> Certificados do Web Push -> Gerar par de chaves.
+ *
+ * Gerada em 11/09/2026 pelo dono.
+ * Ela é pública por natureza (como o apiKey acima) e necessária para o navegador assinar as notificações.
+ */
+export const VAPID_KEY = "BFn1rg9CDSWBEGGqYfHdmXH6hCmYxggGjAXFmKweWi1Scy5lv4g4ULfvUp9s_UjzbfpHZpHAM0EW_3bxu2MYfbY";
+
+export { app };

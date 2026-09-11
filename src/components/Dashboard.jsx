@@ -10,7 +10,9 @@ import Atlas from "./Atlas";
 import Devotionals from "./Devotionals";
 import Hymnal from "./Hymnal";
 import BiblosChat from "./BiblosChat"; // Import Added
+import NotificationModal from "./NotificationModal";
 import { useBibleApi } from "../hooks/useBibleApi";
+import { usePush } from "../hooks/usePush";
 import {
   Search,
   BookOpen,
@@ -20,6 +22,7 @@ import {
   Music,
   Shield,
   BookHeart, // Icon for Devotional
+  Bell,
 } from "lucide-react";
 import Logo from "./Logo";
 import Lenis from "lenis";
@@ -27,6 +30,8 @@ import Lenis from "lenis";
 export default function Dashboard() {
   const { user, isAdmin, logout } = useAuth();
   const { entities, status, errorMsg } = useBiblosData();
+  const push = usePush(user);
+  const [showNotifModal, setShowNotifModal] = useState(false);
 
   // Refactored State for "Neutral Gear"
   // view can be: 'neutral', 'atlas', 'bible', 'devotionals', 'hymnal', 'results', 'details', 'admin'
@@ -386,6 +391,13 @@ export default function Dashboard() {
         />
       )}
 
+      {/* NOTIFICATION MODAL */}
+      <NotificationModal
+        isOpen={showNotifModal}
+        onClose={() => setShowNotifModal(false)}
+        push={push}
+      />
+
       {/* HEADER - Always Visible for User Info, Contextual for others */}
       <header
         className={`relative z-20 px-4 pt-6 pb-2 backdrop-blur-sm bg-white/50 sticky top-0 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-between ${
@@ -426,6 +438,17 @@ export default function Dashboard() {
               <div className="text-[10px] font-bold text-slate-500 max-w-[80px] truncate leading-tight flex flex-col items-end">
                 <span>{user.email?.split("@")[0]}</span>
               </div>
+              <button
+                onClick={() => setShowNotifModal(true)}
+                className={`p-1.5 rounded-full transition-colors shadow-sm ${
+                  push.isSubscribed
+                    ? "bg-amber-100 text-amber-600 hover:bg-amber-200"
+                    : "bg-white text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+                }`}
+                title="Notificações"
+              >
+                <Bell size={14} />
+              </button>
               <button
                 onClick={logout}
                 className="p-1.5 rounded-full bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm"
@@ -496,6 +519,30 @@ export default function Dashboard() {
           <p className="text-slate-500 max-w-[200px] mx-auto leading-relaxed text-sm">
             Selecione uma seção abaixo para iniciar.
           </p>
+
+          {user && !user.isAnonymous && (
+            <button
+              onClick={() => setShowNotifModal(true)}
+              className="mt-6 flex items-center gap-2.5 px-4 py-2 bg-amber-50/90 hover:bg-amber-100/90 active:scale-95 border border-amber-200/80 rounded-full text-amber-900 transition-all shadow-sm"
+            >
+              <span className="relative flex h-2 w-2">
+                {push.isSubscribed ? (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                ) : (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                  </>
+                )}
+              </span>
+              <Bell size={15} className="text-amber-600" />
+              <span className="text-xs font-semibold">
+                {push.isSubscribed
+                  ? "Notificações ativas"
+                  : "Ativar notificações diárias"}
+              </span>
+            </button>
+          )}
         </main>
       )}
 
