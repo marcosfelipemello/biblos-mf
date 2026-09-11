@@ -240,10 +240,10 @@ chamada sem token válido, ou de quem não é do casal, é recusada.
 |---|---|---|---|---|
 | 1 — permissão e token no aparelho | ✅ feito e provado em produção (2 aparelhos) | agy + fiscal | 11/09/2026 | `e5861cb` |
 | 2 — envio no servidor + Pão Diário (9h) | ✅ feito e provado: disparo sob demanda enviou (1/1) e a repetição imediata pulou | fiscal (`push.js`) + agy (agendada) | 11/09/2026 | `1bcda48` + (este commit) |
-| 3 — plano solo parado há 2 dias (19h) | ⏳ pendente | | | |
-| 4 — casal: lembrete e "seu par já leu" (20h) | ⏳ pendente | | | |
+| 3 — plano solo parado há 2 dias (19h) | ✅ feito; rodou em produção sem erro, mas **entrega não provada** (ninguém tinha plano parado há 2 dias) | agy | 11/09/2026 | (este commit) |
+| 4 — casal: lembrete e "seu par já leu" (20h) | ✅ feito e provado: enviou (1/1) e a repetição pulou; `test_push_decisao.js` cobre as 3 linhas da tabela | agy | 11/09/2026 | (este commit) |
 | 5 — aviso na hora em que o cônjuge conclui | ⏳ pendente | | | |
-| 6 — desligar, e a verificação da decisão | ⏳ pendente | | | |
+| 6 — desligar, e a verificação da decisão | 🔨 metade: as 3 chaves e o teste da decisão já existem; falta o "parar de receber NESTE aparelho" (apagar o token) | agy | 11/09/2026 | (este commit) |
 
 **Achado de 11/09/2026 — o `firebase-admin` NÃO pode ser empacotado.** Empacotado pelo
 bundler do Netlify ele quebra ao buscar o token OAuth (`app/invalid-credential` — "Class

@@ -3,6 +3,8 @@
 // para qualquer usuário do app.
 import { enviarPara } from "../lib/push.js";
 import { executarPaoDiario } from "../lib/pao-diario.js";
+import { executarPlanoParado } from "../lib/plano-parado.js";
+import { executarCasalDoDia } from "../lib/casal-do-dia.js";
 
 const json = (status, corpo) => ({
   statusCode: status,
@@ -32,6 +34,24 @@ export const handler = async (event) => {
     try {
       const placar = await executarPaoDiario();
       return json(200, { job: "pao-diario", ...placar });
+    } catch (err) {
+      return json(500, { erro: err?.message, codigo: err?.errorInfo?.code });
+    }
+  }
+
+  if (job === "plano-parado") {
+    try {
+      const placar = await executarPlanoParado();
+      return json(200, { job: "plano-parado", ...placar });
+    } catch (err) {
+      return json(500, { erro: err?.message, codigo: err?.errorInfo?.code });
+    }
+  }
+
+  if (job === "casal-do-dia") {
+    try {
+      const placar = await executarCasalDoDia();
+      return json(200, { job: "casal-do-dia", ...placar });
     } catch (err) {
       return json(500, { erro: err?.message, codigo: err?.errorInfo?.code });
     }
