@@ -21,6 +21,53 @@ const DEFAULT_PREFS = {
   couple: true,
 };
 
+function checkIsIOS() {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return false;
+  }
+  const ua = navigator.userAgent || "";
+  // iPhone, iPad ou iPod diretamente no userAgent
+  const isDirectIOS = /iPhone|iPad|iPod/i.test(ua);
+  // iPad moderno rodando iPadOS (apresenta-se como MacIntel com suporte multitoque)
+  const isIPadOS =
+    navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  return isDirectIOS || isIPadOS;
+}
+
+function checkIsInstalado() {
+  if (typeof window === "undefined") return false;
+  const isStandaloneNavigator = window.navigator?.standalone === true;
+  const isStandaloneMedia =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(display-mode: standalone)").matches;
+  return Boolean(isStandaloneNavigator || isStandaloneMedia);
+}
+
+function getIOSVersion() {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return null;
+  }
+  const ua = navigator.userAgent || "";
+  const match = ua.match(/(?:iPhone OS|CPU OS|iPad OS|OS) (\d+)[._](\d+)/i);
+  if (match) {
+    return {
+      major: parseInt(match[1], 10),
+      minor: parseInt(match[2], 10),
+    };
+  }
+  const verMatch = ua.match(/Version\/(\d+)[._](\d+)/i);
+  if (
+    verMatch &&
+    (ua.includes("Safari") || navigator.platform === "MacIntel")
+  ) {
+    return {
+      major: parseInt(verMatch[1], 10),
+      minor: parseInt(verMatch[2], 10),
+    };
+  }
+  return null;
+}
+
 /**
  * Hook para gerenciamento de notificações Web Push no Biblos MF.
  *
@@ -28,8 +75,19 @@ const DEFAULT_PREFS = {
  * 1. Pedir permissão SÓ no gesto explícito do usuário (nunca no carregamento).
  * 2. Gravar em users/{uid}/pushTokens/{token} (um documento por aparelho).
  * 3. Preferências em users/{uid}.notif = { manna: true, plan: true, couple: true }.
+ * 4. No iPhone/iPad, Web Push EXIGE que o app esteja instalado na Tela de Início (iOS 16.4+).
  */
 export function usePush(user) {
+  const isIOS = checkIsIOS();
+  const [isInstalado, setIsInstalado] = useState(() => checkIsInstalado());
+
+  const iosVer = isIOS ? getIOSVersion() : null;
+  const isOldIOS = Boolean(
+    isIOS &&
+      iosVer &&
+      (iosVer.major < 16 || (iosVer.major === 16 && iosVer.minor < 4))
+  );
+
   const [supported, setSupported] = useState(null);
   const [permission, setPermission] = useState(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -48,6 +106,27 @@ export function usePush(user) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preferences, setPreferences] = useState(DEFAULT_PREFS);
+
+  // Acompanha mudanças de modo de exibição (standalone)
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function"
+    ) {
+      const mediaQuery = window.matchMedia("(display-mode: standalone)");
+      const handler = (e) =>
+        setIsInstalado(
+          Boolean(e.matches || window.navigator?.standalone === true)
+        );
+      if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", handler);
+        return () => mediaQuery.removeEventListener("change", handler);
+      } else if (typeof mediaQuery.addListener === "function") {
+        mediaQuery.addListener(handler);
+        return () => mediaQuery.removeEventListener("change", handler);
+      }
+    }
+  }, []);
 
   // Estado de inscrição derivado do usuário ativo, permissão do navegador e token existente
   const isSubscribed = Boolean(
@@ -121,6 +200,21 @@ export function usePush(user) {
   const subscribe = useCallback(async () => {
     if (!user || user.isAnonymous) {
       setError("Faça login com sua conta para ativar as notificações.");
+      return null;
+    }
+
+    // No iPhone/iPad, Web Push só funciona se o app estiver adicionado à Tela de Início
+    if (isIOS && !isInstalado) {
+      setError(
+        "No iPhone/iPad, adicione o Biblos à Tela de Início antes de ativar as notificações."
+      );
+      return null;
+    }
+
+    if (isOldIOS) {
+      setError(
+        "O Web Push no iPhone requer o iOS 16.4 ou superior. Atualize seu aparelho para receber notificações."
+      );
       return null;
     }
 
@@ -202,7 +296,7 @@ export function usePush(user) {
       setLoading(false);
       return null;
     }
-  }, [user, supported]);
+  }, [user, supported, isIOS, isInstalado, isOldIOS]);
 
   // 4. Descadastramento do aparelho (parar de receber neste dispositivo)
   const unsubscribe = useCallback(async () => {
@@ -279,6 +373,9 @@ export function usePush(user) {
     supported,
     permission,
     isSubscribed,
+    isIOS,
+    isInstalado,
+    isOldIOS,
     token,
     loading,
     error,

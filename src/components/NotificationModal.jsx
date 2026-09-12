@@ -8,6 +8,8 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  Share,
+  Smartphone,
 } from "lucide-react";
 
 export default function NotificationModal({ isOpen, onClose, push }) {
@@ -19,6 +21,9 @@ export default function NotificationModal({ isOpen, onClose, push }) {
     supported,
     permission,
     isSubscribed,
+    isIOS,
+    isInstalado,
+    isOldIOS,
     loading,
     error,
     preferences,
@@ -172,13 +177,13 @@ export default function NotificationModal({ isOpen, onClose, push }) {
           </div>
         )}
 
-        {supported === false && (
+        {supported === false && !isIOS && (
           <div className="mb-4 p-3 rounded-xl bg-slate-100 text-slate-600 text-xs leading-relaxed">
             Este navegador não suporta notificações Web Push.
           </div>
         )}
 
-        {/* Botão de ação */}
+        {/* Botão de ação ou Instrução de instalação iOS */}
         {isSubscribed ? (
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-100">
@@ -223,11 +228,59 @@ export default function NotificationModal({ isOpen, onClose, push }) {
               </div>
             )}
           </div>
+        ) : isOldIOS ? (
+          <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 text-xs leading-relaxed space-y-1">
+            <p className="font-bold text-slate-800">Versão do iOS não suportada</p>
+            <p className="text-[11px] text-slate-600">
+              No iPhone, as notificações web exigem o iOS 16.4 ou superior. Atualize seu aparelho para poder receber notificações.
+            </p>
+          </div>
+        ) : isIOS && !isInstalado ? (
+          <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 space-y-3">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+              <Smartphone size={16} className="text-amber-600 shrink-0" />
+              <span>Instalação necessária no iPhone</span>
+            </div>
+            <p className="text-[11px] text-amber-900 leading-relaxed">
+              No iPhone, as notificações só funcionam quando o Biblos é adicionado à Tela de Início:
+            </p>
+            <ol className="space-y-2 text-[11px] text-slate-700">
+              <li className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+                  1
+                </span>
+                <span>
+                  Toque no botão <strong>Compartilhar</strong> (o quadradinho com a seta para cima <Share size={12} className="inline-block text-amber-700 -mt-0.5" /> na barra do Safari).
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+                  2
+                </span>
+                <span>
+                  Escolha a opção <strong>"Adicionar à Tela de Início"</strong>.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+                  3
+                </span>
+                <span>
+                  Abra o Biblos pelo <strong>ícone novo</strong> na sua tela de início (não pelo Safari).
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-900 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+                  4
+                </span>
+                <span>
+                  Toque no <strong>sino</strong> de novo e ative as notificações.
+                </span>
+              </li>
+            </ol>
+          </div>
         ) : (
           <div>
-            <p className="text-[10px] text-slate-400 text-center mb-3">
-              No iPhone (iOS), adicione o app à Tela de Início antes de ativar.
-            </p>
             <button
               onClick={subscribe}
               disabled={loading || isDenied || supported === false}
