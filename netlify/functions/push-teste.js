@@ -1,7 +1,7 @@
 // Disparo manual de notificação, só para diagnóstico.
 // Protegido por segredo: sem ele, qualquer um na internet mandaria notificação
 // para qualquer usuário do app.
-import { enviarPara } from "../lib/push.js";
+import { db, enviarPara } from "../lib/push.js";
 import { executarPaoDiario } from "../lib/pao-diario.js";
 import { executarPlanoParado } from "../lib/plano-parado.js";
 import { executarCasalDoDia } from "../lib/casal-do-dia.js";
@@ -30,6 +30,34 @@ export const handler = async (event) => {
   }
 
   // Execução de rotina agendada sob demanda para teste e validação
+  // Diagnóstico: só LÊ. Mostra de qual aparelho veio cada token registrado —
+  // é o que separa "o token é do iPhone dela" de "o token veio de outro lugar".
+  if (job === "diagnostico") {
+    if (!uid) return json(400, { erro: "Informe o uid." });
+    try {
+      const banco = db();
+      const userSnap = await banco.doc(`users/${uid}`).get();
+      const notif = (userSnap.data() || {}).notif || {};
+      const tokensSnap = await banco.collection(`users/${uid}/pushTokens`).get();
+      return json(200, {
+        uid,
+        existe: userSnap.exists,
+        notif,
+        aparelhos: tokensSnap.docs.map((d) => {
+          const dados = d.data() || {};
+          const criado = dados.createdAt;
+          return {
+            token: `${d.id.slice(0, 10)}…${d.id.slice(-6)}`,
+            criadoEm: criado?.toDate ? criado.toDate().toISOString() : null,
+            aparelho: dados.userAgent || "(não registrado)",
+          };
+        }),
+      });
+    } catch (err) {
+      return json(500, { erro: err?.message });
+    }
+  }
+
   if (job === "pao-diario") {
     try {
       const placar = await executarPaoDiario();
