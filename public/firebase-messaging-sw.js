@@ -18,14 +18,18 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// O servidor manda SÓ dados (sem o bloco `notification`), de propósito: assim
+// quem desenha o aviso é só este arquivo, uma vez. Ver netlify/lib/push.js.
 messaging.onBackgroundMessage((payload) => {
-  const title =
-    payload.notification?.title || payload.data?.title || "Biblos";
+  const dados = payload.data || {};
+  const title = dados.title || "Biblos";
   const options = {
-    body: payload.notification?.body || payload.data?.body || "",
-    icon: payload.notification?.icon || "/favicon.svg",
-    badge: "/favicon.svg",
-    data: payload.data || {},
+    body: dados.body || "",
+    icon: "/pwa-192x192.png",
+    badge: "/pwa-192x192.png",
+    // Aviso do mesmo tipo substitui o anterior em vez de empilhar.
+    tag: dados.tipo || "biblos",
+    data: dados,
   };
 
   self.registration.showNotification(title, options);

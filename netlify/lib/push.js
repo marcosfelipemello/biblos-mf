@@ -36,11 +36,23 @@ export async function enviarPara(uid, { title, body, data = {} }) {
   const resultados = await Promise.all(
     tokens.map(async (token) => {
       try {
+        // SÓ `data`, nunca `notification`. Com o bloco `notification`, o
+        // navegador exibe o aviso sozinho E o nosso service worker exibe o
+        // dele: chegavam DUAS notificações iguais, uma com a logo e outra com
+        // o ícone genérico. Mandando só dados, quem desenha é apenas o
+        // firebase-messaging-sw.js, uma vez, com o ícone do app.
+        // Todo valor de `data` tem de ser string — o FCM recusa o resto.
+        const dados = { title, body };
+        for (const [chave, valor] of Object.entries(data || {})) {
+          dados[chave] = String(valor);
+        }
         const id = await mensagens.send({
           token,
-          notification: { title, body },
-          data,
-          webpush: { fcmOptions: { link: "https://biblos.devmf.com.br/" } },
+          data: dados,
+          webpush: {
+            headers: { Urgency: "high" },
+            fcmOptions: { link: "https://biblos.devmf.com.br/" },
+          },
         });
         return { token, ok: true, id };
       } catch (err) {
