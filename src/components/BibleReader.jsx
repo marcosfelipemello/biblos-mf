@@ -364,7 +364,7 @@ export default function BibleReader({
         </button>
 
         {/* DESKTOP READING HEADER - Only visible on lg: (>= 1024px) */}
-        <div className="hidden lg:flex lg:items-center lg:justify-between lg:w-full lg:max-w-[70ch] lg:pb-6 lg:mb-8 lg:border-b lg:border-slate-100 shrink-0">
+        <div data-leitura-coluna data-leitura-cabecalho className="hidden lg:flex lg:items-center lg:justify-between lg:w-full lg:max-w-[70ch] lg:pb-6 lg:mb-8 lg:border-b lg:border-slate-100 shrink-0">
           <button
             onClick={handlePrev}
             disabled={chapter === 1}
@@ -619,7 +619,7 @@ export default function BibleReader({
         )}
 
       {/* TEXT CONTENT */}
-      <div className="px-4 max-w-2xl lg:max-w-[70ch] mx-auto w-full">
+      <div data-leitura-coluna className="px-4 max-w-2xl lg:max-w-[70ch] mx-auto w-full">
         {loading || verses.length === 0 ? (
           <div className="space-y-4 animate-pulse mt-8">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -644,7 +644,7 @@ export default function BibleReader({
                   <span className="absolute left-0 top-1.5 text-[9px] font-bold text-slate-300 select-none">
                     {v.number}
                   </span>
-                  <p className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif">
+                  <p data-leitura-texto className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif">
                     <SmartText
                       text={v.text}
                       entities={entities}
