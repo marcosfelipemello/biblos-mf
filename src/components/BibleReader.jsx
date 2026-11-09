@@ -7,6 +7,8 @@ import {
   Highlighter,
   Grid3X3,
   ListOrdered,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { useBibleApi, getVerseCount } from "../hooks/useBibleApi";
 import { useAuth } from "../hooks/useAuth";
@@ -118,6 +120,29 @@ export default function BibleReader({
   }, [currentBook]);
 
   // Chapter/Verse Selector State
+  // Leitura em tela cheia (só computador): esconde as barras laterais e pede tela cheia ao navegador
+  const [telaCheia, setTelaCheia] = useState(false);
+  useEffect(() => {
+    document.documentElement.classList.toggle("leitura-cheia", telaCheia);
+    if (!telaCheia) return;
+    const sair = () => { if (!document.fullscreenElement) setTelaCheia(false); };
+    document.addEventListener("fullscreenchange", sair);
+    return () => {
+      document.removeEventListener("fullscreenchange", sair);
+      document.documentElement.classList.remove("leitura-cheia");
+    };
+  }, [telaCheia]);
+  useEffect(() => () => { if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {}); }, []);
+  const alternarTelaCheia = () => {
+    if (telaCheia) {
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+      setTelaCheia(false);
+    } else {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+      setTelaCheia(true);
+    }
+  };
+
   const [showChapterSelector, setShowChapterSelector] = useState(false);
   const [selectionStep, setSelectionStep] = useState("chapter"); // 'chapter' | 'verse'
   const [tempSelectedChapter, setTempSelectedChapter] = useState(null);
@@ -245,7 +270,7 @@ export default function BibleReader({
   return (
     <div className="pb-20 lg:pb-8 animate-enter-view lg:flex lg:flex-row lg:h-full lg:overflow-hidden">
       {/* DESKTOP SIDE PANEL (LIVROS E CAPÍTULOS) - Only visible on lg: (>= 1024px) */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-slate-50/50 lg:h-full lg:overflow-hidden select-none">
+      <aside data-painel-livros className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-slate-50/50 lg:h-full lg:overflow-hidden select-none">
         {/* Testament Switcher Tabs */}
         <div className="p-3 border-b border-slate-200/60 flex gap-1.5 bg-white/80 shrink-0">
           <button
@@ -328,6 +353,16 @@ export default function BibleReader({
 
       {/* READING COLUMN CONTAINER */}
       <div className="flex-1 lg:overflow-y-auto lg:h-full lg:px-12 lg:py-8 lg:flex lg:flex-col lg:items-center no-scrollbar w-full">
+        {/* Botão de tela cheia (só computador) */}
+        <button
+          onClick={alternarTelaCheia}
+          title={telaCheia ? "Sair da tela cheia (Esc)" : "Ler em tela cheia"}
+          className="hidden lg:flex fixed top-5 right-6 z-50 items-center gap-2 px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold shadow-lg shadow-amber-500/30 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+        >
+          {telaCheia ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          <span>{telaCheia ? "Sair da tela cheia" : "Tela cheia"}</span>
+        </button>
+
         {/* DESKTOP READING HEADER - Only visible on lg: (>= 1024px) */}
         <div className="hidden lg:flex lg:items-center lg:justify-between lg:w-full lg:max-w-[70ch] lg:pb-6 lg:mb-8 lg:border-b lg:border-slate-100 shrink-0">
           <button

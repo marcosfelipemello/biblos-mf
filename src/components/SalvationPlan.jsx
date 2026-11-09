@@ -130,7 +130,7 @@ function Jornada({ state, feitos, atual, anonimo, onBack, onAbrir, onIntro, onCo
   const R = 52, C = 2 * Math.PI * R;
 
   return (
-    <div ref={scroller} className="fixed inset-0 z-[100] overflow-y-auto bg-[#0b1026] text-white" data-lenis-prevent>
+    <div ref={scroller} className="fixed inset-0 lg:left-72 z-[100] overflow-y-auto bg-[#0b1026] text-white" data-lenis-prevent>
       {/* Céu */}
       <header className="relative overflow-hidden min-h-[92svh] flex flex-col" style={{ "--ps-glow": "#fbbf24" }}>
         <div className="absolute inset-0 bg-gradient-to-b from-[#05071a] via-[#1e1b4b] to-[#78350f]" />
@@ -295,7 +295,7 @@ function Dia({ n, feito, anonimo, onBack, onIr, onConcluir, onDesfazer, goToBibl
   };
 
   return (
-    <div ref={scroller} key={n} className="ps-sheet fixed inset-0 z-[100] overflow-y-auto bg-[#faf7f2]" style={{ "--ps-accent": t.acento, "--ps-glow": t.luz }} data-lenis-prevent>
+    <div ref={scroller} key={n} className="ps-sheet fixed inset-0 lg:left-72 z-[100] overflow-y-auto bg-[#faf7f2]" style={{ "--ps-accent": t.acento, "--ps-glow": t.luz }} data-lenis-prevent>
       {burst && <Explosao />}
 
       {/* Céu do ato */}
@@ -473,7 +473,7 @@ function Explosao() {
 function Introducao({ onBack }) {
   const scroller = useReveal([]);
   return (
-    <div ref={scroller} className="ps-sheet fixed inset-0 z-[100] overflow-y-auto bg-[#faf7f2]" data-lenis-prevent>
+    <div ref={scroller} className="ps-sheet fixed inset-0 lg:left-72 z-[100] overflow-y-auto bg-[#faf7f2]" data-lenis-prevent>
       <header className="relative overflow-hidden text-white bg-gradient-to-b from-[#05071a] via-[#1e1b4b] to-[#78350f]" style={{ "--ps-glow": "#fbbf24" }}>
         <div className="ps-stars" />
         <div className="ps-aurora" />

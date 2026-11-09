@@ -90,3 +90,9 @@
   backface-visibility: hidden;
   perspective: 1000px;
 }
+
+/* Leitura em tela cheia no computador (botão no leitor da Bíblia) */
+@media (min-width: 1024px) {
+  .leitura-cheia [data-barra-lateral],
+  .leitura-cheia [data-painel-livros] { display: none !important; }
+}

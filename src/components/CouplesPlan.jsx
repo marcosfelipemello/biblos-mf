@@ -69,7 +69,7 @@ export default function CouplesPlan({ user, onBack, goToBibleReference }) {
 
 function Splash() {
   return (
-    <div className="fixed inset-0 z-[100] bg-white flex items-center justify-center" data-lenis-prevent>
+    <div className="fixed inset-0 lg:left-72 z-[100] bg-white flex items-center justify-center" data-lenis-prevent>
       <div className="w-10 h-10 border-4 border-slate-200 border-t-rose-500 rounded-full animate-spin" />
     </div>
   );
@@ -102,7 +102,7 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
+    <div className="fixed inset-0 lg:left-72 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 z-10">
         <button
           onClick={onBack}
@@ -303,7 +303,7 @@ function DayView({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
+    <div className="fixed inset-0 lg:left-72 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
       {/* Cabeçalho */}
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-200/50 z-10">
         <div className="flex items-center gap-3">
@@ -646,7 +646,7 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[110] bg-white overflow-y-auto animate-slide-up"
+      className="fixed inset-0 lg:left-72 z-[110] bg-white overflow-y-auto animate-slide-up"
       data-lenis-prevent
     >
       <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 border-b border-slate-200/50">

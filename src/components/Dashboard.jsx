@@ -380,7 +380,7 @@ export default function Dashboard() {
       <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[60%] bg-gradient-to-br from-amber-100/40 via-purple-50/20 to-transparent blur-3xl pointer-events-none z-0" />
 
       {/* DESKTOP SIDEBAR - Only visible on lg: (>= 1024px) */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-white/80 lg:backdrop-blur-md lg:h-full lg:z-30 lg:justify-between lg:p-6 select-none shadow-[2px_0_15px_-4px_rgba(0,0,0,0.03)]">
+      <aside data-barra-lateral className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-white/80 lg:backdrop-blur-md lg:h-full lg:z-30 lg:justify-between lg:p-6 select-none shadow-[2px_0_15px_-4px_rgba(0,0,0,0.03)]">
         <div>
           {/* Brand Logo */}
           <button
