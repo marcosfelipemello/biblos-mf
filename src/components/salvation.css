@@ -126,3 +126,13 @@
   .ps-verse, .ps-sheet { animation: none; opacity: 1; }
   .ps-burst { display: none; }
 }
+
+@media (min-width: 1024px) {
+  .ps-display {
+    letter-spacing: -0.01em;
+  }
+  .ps-dropcap::first-letter {
+    font-size: 4em;
+    margin: 0.06em 0.12em 0 0;
+  }
+}

@@ -102,8 +102,8 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
   };
 
   return (
-    <div className="fixed inset-0 lg:left-72 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 z-10">
+    <div className="fixed inset-0 lg:left-72 z-[100] bg-white lg:bg-slate-50 overflow-y-auto animate-slide-up lg:flex lg:items-center lg:justify-center" data-lenis-prevent>
+      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 z-10 lg:hidden">
         <button
           onClick={onBack}
           className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
@@ -112,7 +112,14 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
         </button>
       </div>
 
-      <div className="px-6 pb-32 text-center">
+      <div className="px-6 pb-32 text-center lg:bg-white lg:p-10 lg:rounded-3xl lg:border lg:border-slate-100 lg:shadow-xl lg:max-w-md lg:mx-auto lg:pb-10 relative">
+        <button
+          onClick={onBack}
+          className="hidden lg:flex absolute top-6 left-6 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors lg:cursor-pointer"
+          title="Voltar"
+        >
+          <ArrowLeft size={20} />
+        </button>
         <div className="w-20 h-20 rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-6">
           <Heart size={36} fill="currentColor" />
         </div>
@@ -134,7 +141,7 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
             </p>
             <button
               onClick={() => navigator.clipboard?.writeText(code)}
-              className="text-xs font-bold text-rose-600 flex items-center gap-1.5 mx-auto hover:text-rose-700 py-2 px-4 rounded-full hover:bg-rose-100/50"
+              className="text-xs font-bold text-rose-600 flex items-center gap-1.5 mx-auto hover:text-rose-700 py-2 px-4 rounded-full hover:bg-rose-100/50 lg:cursor-pointer"
             >
               <Copy size={14} /> Copiar código
             </button>
@@ -159,14 +166,14 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
             <button
               type="submit"
               disabled={input.length < 8 || busy}
-              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold disabled:opacity-40 active:scale-95 transition-all"
+              className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold disabled:opacity-40 active:scale-95 transition-all lg:cursor-pointer"
             >
               {busy ? "Entrando..." : "Entrar no plano"}
             </button>
             <button
               type="button"
               onClick={() => setMode(null)}
-              className="text-xs text-slate-400 font-medium py-2"
+              className="text-xs text-slate-400 font-medium py-2 lg:cursor-pointer"
             >
               Voltar
             </button>
@@ -182,14 +189,14 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
               <button
                 onClick={() => handleCreate("noivos")}
                 disabled={busy}
-                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50"
+                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50 lg:cursor-pointer"
               >
                 {busy ? "..." : "Noivos"}
               </button>
               <button
                 onClick={() => handleCreate("casados")}
                 disabled={busy}
-                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50"
+                className="py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all disabled:opacity-50 lg:cursor-pointer"
               >
                 {busy ? "..." : "Casados"}
               </button>
@@ -200,7 +207,7 @@ function Onboarding({ onBack, createCouple, joinCouple, error }) {
             </p>
             <button
               onClick={() => setMode("entrar")}
-              className="w-full py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 active:scale-95 transition-all"
+              className="w-full py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 active:scale-95 transition-all lg:cursor-pointer"
             >
               Tenho um código
             </button>
@@ -305,22 +312,22 @@ function DayView({
   return (
     <div className="fixed inset-0 lg:left-72 z-[100] bg-slate-50 overflow-y-auto animate-slide-up" data-lenis-prevent>
       {/* Cabeçalho */}
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-200/50 z-10">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-200/50 z-10 lg:px-10 lg:py-5">
+        <div className="flex items-center gap-3 lg:max-w-5xl lg:mx-auto">
           <button
             onClick={onBack}
-            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
+            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 lg:cursor-pointer"
           >
             <ArrowLeft size={22} />
           </button>
           <button
             onClick={() => setVerRoteiro(true)}
-            className="flex-1 min-w-0 text-left group"
+            className="flex-1 min-w-0 text-left group lg:cursor-pointer"
           >
-            <h2 className="text-base font-bold text-slate-800 truncate group-hover:text-rose-600 transition-colors">
+            <h2 className="text-base lg:text-xl font-bold text-slate-800 truncate group-hover:text-rose-600 transition-colors">
               {hoje.phase.title}
             </h2>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
+            <p className="text-[10px] lg:text-xs font-bold uppercase tracking-wider text-rose-500">
               Dia {hoje.dayInPhase} de {hoje.phase.dayCount} • ver roteiro
             </p>
           </button>
@@ -328,7 +335,7 @@ function DayView({
             onClick={() => {
               if (window.confirm("Sair do plano do casal?")) leaveCouple();
             }}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-300 hover:text-slate-500"
+            className="p-2 rounded-full hover:bg-slate-100 text-slate-300 hover:text-slate-500 lg:cursor-pointer"
             title="Sair do plano"
           >
             <LogOut size={16} />
@@ -337,14 +344,14 @@ function DayView({
 
         {/* Progresso da fase em destaque; o geral fica discreto, senão
             "dia 3 de 695" desanima antes de começar. */}
-        <div className="mt-3">
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="mt-3 lg:max-w-5xl lg:mx-auto">
+          <div className="h-1.5 lg:h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-rose-500 rounded-full transition-all duration-500"
               style={{ width: `${pctFase}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400 mt-1 font-medium">
+          <p className="text-[10px] lg:text-xs text-slate-400 mt-1 font-medium">
             {concluidosNaFase} de {hoje.phase.dayCount} dias nesta fase
             <span className="text-slate-300">
               {" "}
@@ -364,7 +371,7 @@ function DayView({
         />
       )}
 
-      <div className="p-6 pb-32">
+      <div className="p-6 pb-32 lg:max-w-5xl lg:mx-auto lg:p-10 lg:pb-24">
         {/* Aguardando o par */}
         {!isPaired && (
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6 flex items-start gap-3">
@@ -383,241 +390,248 @@ function DayView({
         )}
 
         {/* Navegação */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 lg:mb-8 lg:max-w-md lg:mx-auto">
           <button
             onClick={() => goToDay(day - 1)}
             disabled={day === 1}
-            className="p-2 rounded-full bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+            className="p-2 lg:p-3 rounded-full bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all lg:cursor-pointer"
           >
             <ChevronLeft size={18} className="text-slate-600" />
           </button>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-rose-600">
+          <span className="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-rose-600">
             Dia {day} de {total}
           </span>
           <button
             onClick={() => goToDay(day + 1)}
             disabled={day === total}
-            className="p-2 rounded-full bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+            className="p-2 lg:p-3 rounded-full bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all lg:cursor-pointer"
           >
             <ChevronRight size={18} className="text-slate-600" />
           </button>
         </div>
 
-        <h1 className="text-2xl font-serif font-bold text-slate-800 text-center mb-8 leading-tight">
-          {hoje.theme}
-        </h1>
+        {/* Layout em duas colunas no desktop: Leitura à esquerda, Devocional/Oração à direita */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-serif font-bold text-slate-800 text-center lg:text-left mb-8 leading-tight">
+              {hoje.theme}
+            </h1>
 
-        {/* 1. LEITURA */}
-        <Section
-          icon={<BookOpen size={16} className="text-amber-500" />}
-          label="Leitura"
-        />
-        <div className="space-y-2 mb-8">
-          {hoje.readings.map((ref) => (
-            <button
-              key={ref}
-              onClick={() => goToBibleReference(ref)}
-              className="w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 hover:border-amber-200 hover:shadow-md transition-all group text-left active:scale-[0.98]"
-            >
-              <span className="font-serif font-bold text-slate-700 flex-1">
-                {ref}
-              </span>
-              <ChevronRight
-                size={16}
-                className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all"
-              />
-            </button>
-          ))}
-        </div>
-
-        {/* 2. DEVOCIONAL */}
-        <Collapsible
-          icon={<Heart size={16} className="text-rose-500" />}
-          label="Devocional"
-          open={estaAberto("devocional")}
-          onToggle={() => alternar("devocional")}
-        >
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-3">
-            <p className="text-[15px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
-              {hoje.devotional}
-            </p>
+            {/* 1. LEITURA */}
+            <Section
+              icon={<BookOpen size={16} className="text-amber-500" />}
+              label="Leitura"
+            />
+            <div className="space-y-2 mb-8">
+              {hoje.readings.map((ref) => (
+                <button
+                  key={ref}
+                  onClick={() => goToBibleReference(ref)}
+                  className="w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 hover:border-amber-200 hover:shadow-md transition-all group text-left active:scale-[0.98] lg:cursor-pointer"
+                >
+                  <span className="font-serif font-bold text-slate-700 flex-1 lg:text-lg">
+                    {ref}
+                  </span>
+                  <ChevronRight
+                    size={16}
+                    className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
-          {notaDoParceiro && (
-            <div className="bg-rose-50 rounded-2xl p-5 border border-rose-100 mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
-                Reflexão de {partnerName}
-              </p>
-              <p className="text-[15px] leading-relaxed text-rose-900 whitespace-pre-line">
-                {notaDoParceiro}
-              </p>
-            </div>
-          )}
-
-          {minhaNota && editando === null && (
-            <div className="bg-white rounded-2xl p-5 border border-rose-100 mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
-                Sua reflexão
-              </p>
-              <p className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-line">
-                {minhaNota}
-              </p>
-            </div>
-          )}
-
-          {editando === null ? (
-            <button
-              onClick={() => {
-                setSent(null);
-                setRascunho({ day, text: minhaNota });
-              }}
-              className="w-full py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all"
+          <div className="lg:mt-0">
+            {/* 2. DEVOCIONAL */}
+            <Collapsible
+              icon={<Heart size={16} className="text-rose-500" />}
+              label="Devocional"
+              open={estaAberto("devocional")}
+              onToggle={() => alternar("devocional")}
             >
-              <Edit3 size={14} />
-              {sent === "devocional"
-                ? "Reflexão salva"
-                : minhaNota
-                  ? "Editar nossa reflexão"
-                  : "Escrever nossa reflexão"}
-            </button>
-          ) : (
-            <div className="bg-white rounded-2xl p-4 border border-rose-200 shadow-sm">
-              <textarea
-                autoFocus
-                rows={5}
-                maxLength={2000}
-                value={editando}
-                onChange={(e) => setRascunho({ day, text: e.target.value })}
-                placeholder="O que essa leitura falou com vocês hoje?"
-                className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-slate-700 outline-none placeholder:text-slate-300"
-              />
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => setRascunho(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={salvarNota}
-                  disabled={!editando.trim()}
-                  className="flex-1 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 disabled:opacity-40 active:scale-95 transition-all"
-                >
-                  Salvar reflexão
-                </button>
+              <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm mb-3">
+                <p className="text-[15px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
+                  {hoje.devotional}
+                </p>
               </div>
-            </div>
-          )}
 
-          {sent === "erro" && (
-            <p className="text-xs font-bold text-red-500 mt-2 text-center">
-              Não deu para salvar. Tente de novo.
-            </p>
-          )}
-        </Collapsible>
+              {notaDoParceiro && (
+                <div className="bg-rose-50 rounded-2xl p-5 border border-rose-100 mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
+                    Reflexão de {partnerName}
+                  </p>
+                  <p className="text-[15px] leading-relaxed text-rose-900 whitespace-pre-line">
+                    {notaDoParceiro}
+                  </p>
+                </div>
+              )}
 
-        {/* 3. ORAÇÃO */}
-        <Collapsible
-          icon={<HandHeart size={16} className="text-purple-500" />}
-          label="Motivo de oração"
-          open={estaAberto("oracao")}
-          onToggle={() => alternar("oracao")}
-        >
-          <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100 mb-3">
-            <p className="text-[15px] leading-relaxed text-purple-900 font-serif italic">
-              {hoje.prayer}
-            </p>
-          </div>
-          <button
-            onClick={enviarOracao}
-            className="w-full py-3 rounded-xl border border-purple-200 bg-white text-purple-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all"
-          >
-            <HandHeart size={14} />
-            {sent === "oracao"
-              ? "Adicionado aos Motivos de Oração"
-              : "Adicionar aos meus motivos de oração"}
-          </button>
-        </Collapsible>
+              {minhaNota && editando === null && (
+                <div className="bg-white rounded-2xl p-5 border border-rose-100 mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-rose-400 mb-2">
+                    Sua reflexão
+                  </p>
+                  <p className="text-[15px] leading-relaxed text-slate-700 whitespace-pre-line">
+                    {minhaNota}
+                  </p>
+                </div>
+              )}
 
-        {/* 4. AÇÃO — opcional, só nos dias que trazem uma proposta concreta */}
-        {hoje.action && (
-          <Collapsible
-            icon={<Sparkles size={16} className="text-emerald-500" />}
-            label="Ação de hoje"
-            open={estaAberto("acao")}
-            onToggle={() => alternar("acao")}
-          >
-            <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
-              <p className="text-[15px] leading-relaxed text-emerald-900">
-                {hoje.action}
-              </p>
-            </div>
-          </Collapsible>
-        )}
+              {editando === null ? (
+                <button
+                  onClick={() => {
+                    setSent(null);
+                    setRascunho({ day, text: minhaNota });
+                  }}
+                  className="w-full py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-95 transition-all lg:cursor-pointer"
+                >
+                  <Edit3 size={14} />
+                  {sent === "devocional"
+                    ? "Reflexão salva"
+                    : minhaNota
+                      ? "Editar nossa reflexão"
+                      : "Escrever nossa reflexão"}
+                </button>
+              ) : (
+                <div className="bg-white rounded-2xl p-4 border border-rose-200 shadow-sm">
+                  <textarea
+                    autoFocus
+                    rows={5}
+                    maxLength={2000}
+                    value={editando}
+                    onChange={(e) => setRascunho({ day, text: e.target.value })}
+                    placeholder="O que essa leitura falou com vocês hoje?"
+                    className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-slate-700 outline-none placeholder:text-slate-300"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => setRascunho(null)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-600 lg:cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={salvarNota}
+                      disabled={!editando.trim()}
+                      className="flex-1 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 disabled:opacity-40 active:scale-95 transition-all lg:cursor-pointer"
+                    >
+                      Salvar reflexão
+                    </button>
+                  </div>
+                </div>
+              )}
 
-        {/* Conclusão */}
-        <button
-          onClick={() => completeDay(day, total)}
-          disabled={euMarquei}
-          className={`w-full py-4 rounded-2xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2 ${
-            euMarquei
-              ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-              : "bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10"
-          }`}
-        >
-          {euMarquei ? (
-            <>
-              <Check size={20} /> Você concluiu
-            </>
-          ) : (
-            "Marcar como concluído"
-          )}
-        </button>
+              {sent === "erro" && (
+                <p className="text-xs font-bold text-red-500 mt-2 text-center">
+                  Não deu para salvar. Tente de novo.
+                </p>
+              )}
+            </Collapsible>
 
-        {/* Marcar sem querer é fácil e acontece. Desfazer fica discreto para
-            não competir com o botão principal, mas existe sempre. */}
-        {euMarquei && (
-          <button
-            onClick={() => uncompleteDay(day)}
-            className="w-full mt-2 py-2 text-xs font-bold text-slate-400 hover:text-slate-600"
-          >
-            Desfazer
-          </button>
-        )}
+            {/* 3. ORAÇÃO */}
+            <Collapsible
+              icon={<HandHeart size={16} className="text-purple-500" />}
+              label="Motivo de oração"
+              open={estaAberto("oracao")}
+              onToggle={() => alternar("oracao")}
+            >
+              <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100 mb-3">
+                <p className="text-[15px] leading-relaxed text-purple-900 font-serif italic">
+                  {hoje.prayer}
+                </p>
+              </div>
+              <button
+                onClick={enviarOracao}
+                className="w-full py-3 rounded-xl border border-purple-200 bg-white text-purple-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all lg:cursor-pointer"
+              >
+                <HandHeart size={14} />
+                {sent === "oracao"
+                  ? "Adicionado aos Motivos de Oração"
+                  : "Adicionar aos meus motivos de oração"}
+              </button>
+            </Collapsible>
 
-        {isPaired && (
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium">
-            {parceiroMarcou ? (
-              <>
-                <Check size={14} className="text-emerald-500" />
-                <span className="text-emerald-600">
-                  {partnerName} também concluiu
-                </span>
-              </>
-            ) : (
-              <>
-                <Clock size={14} className="text-slate-400" />
-                <span className="text-slate-400">
-                  Aguardando {partnerName}
-                </span>
-              </>
+            {/* 4. AÇÃO — opcional, só nos dias que trazem uma proposta concreta */}
+            {hoje.action && (
+              <Collapsible
+                icon={<Sparkles size={16} className="text-emerald-500" />}
+                label="Ação de hoje"
+                open={estaAberto("acao")}
+                onToggle={() => alternar("acao")}
+              >
+                <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+                  <p className="text-[15px] leading-relaxed text-emerald-900">
+                    {hoje.action}
+                  </p>
+                </div>
+              </Collapsible>
+            )}
+
+            {/* Conclusão */}
+            <button
+              onClick={() => completeDay(day, total)}
+              disabled={euMarquei}
+              className={`w-full py-4 rounded-2xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2 lg:cursor-pointer ${
+                euMarquei
+                  ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                  : "bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/10"
+              }`}
+            >
+              {euMarquei ? (
+                <>
+                  <Check size={20} /> Você concluiu
+                </>
+              ) : (
+                "Marcar como concluído"
+              )}
+            </button>
+
+            {/* Marcar sem querer é fácil e acontece. Desfazer fica discreto para
+                não competir com o botão principal, mas existe sempre. */}
+            {euMarquei && (
+              <button
+                onClick={() => uncompleteDay(day)}
+                className="w-full mt-2 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 lg:cursor-pointer"
+              >
+                Desfazer
+              </button>
+            )}
+
+            {isPaired && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium">
+                {parceiroMarcou ? (
+                  <>
+                    <Check size={14} className="text-emerald-500" />
+                    <span className="text-emerald-600">
+                      {partnerName} também concluiu
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Clock size={14} className="text-slate-400" />
+                    <span className="text-slate-400">
+                      Aguardando {partnerName}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Concluir não muda a página sozinho: quem terminou o dia decide
+                quando ir para o próximo, e o toque do outro nunca vira a página
+                de ninguém. */}
+            {euMarquei && day < total && (
+              <button
+                onClick={() => goToDay(day + 1)}
+                className="w-full mt-3 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 lg:cursor-pointer"
+              >
+                {isPaired && !parceiroMarcou
+                  ? "Avançar mesmo assim →"
+                  : `Ir para o dia ${day + 1} →`}
+              </button>
             )}
           </div>
-        )}
-
-        {/* Concluir não muda a página sozinho: quem terminou o dia decide
-            quando ir para o próximo, e o toque do outro nunca vira a página
-            de ninguém. */}
-        {euMarquei && day < total && (
-          <button
-            onClick={() => goToDay(day + 1)}
-            className="w-full mt-3 py-3 text-xs font-bold text-slate-400 hover:text-slate-600"
-          >
-            {isPaired && !parceiroMarcou
-              ? "Avançar mesmo assim →"
-              : `Ir para o dia ${day + 1} →`}
-          </button>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -646,20 +660,22 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 lg:left-72 z-[110] bg-white overflow-y-auto animate-slide-up"
+      className="fixed inset-0 lg:left-72 z-[110] bg-white lg:bg-slate-50 overflow-y-auto animate-slide-up"
       data-lenis-prevent
     >
-      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 border-b border-slate-200/50">
-        <button
-          onClick={onClose}
-          className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
-        >
-          <ArrowLeft size={22} />
-        </button>
-        <h2 className="text-xl font-bold text-slate-800">A jornada</h2>
+      <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 flex items-center gap-3 border-b border-slate-200/50 lg:z-10 lg:px-10 lg:py-5">
+        <div className="flex items-center gap-3 w-full lg:max-w-4xl lg:mx-auto">
+          <button
+            onClick={onClose}
+            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 lg:cursor-pointer"
+          >
+            <ArrowLeft size={22} />
+          </button>
+          <h2 className="text-xl lg:text-2xl font-bold text-slate-800">A jornada</h2>
+        </div>
       </div>
 
-      <div className="p-6 pb-32 space-y-3">
+      <div className="p-6 pb-32 space-y-3 lg:max-w-4xl lg:mx-auto lg:p-8 lg:pb-24 lg:space-y-4">
         {/* Dois caminhos porque são duas situações diferentes: quem casa no
             meio do plano continua de onde parou; quem terminou a volta
             recomeça do dia 1 com a outra leitura. Fica no topo porque, com 29
@@ -684,7 +700,7 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
                 )
                   setTrack(outra, { restart: true });
               }}
-              className="block w-full text-left text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-3 -mx-1 rounded-xl hover:bg-rose-50"
+              className="block w-full text-left text-xs font-bold text-rose-600 hover:text-rose-700 py-2 px-3 -mx-1 rounded-xl hover:bg-rose-50 lg:cursor-pointer"
             >
               Mudar para {TRACKS[outra].toLowerCase()} e recomeçar do dia 1
             </button>
@@ -699,7 +715,7 @@ function Roteiro({ atual, concluidos, track, setTrack, onClose }) {
                 )
                   setTrack(outra);
               }}
-              className="block w-full text-left text-xs font-bold text-slate-500 hover:text-slate-700 py-2 px-3 -mx-1 rounded-xl hover:bg-slate-50"
+              className="block w-full text-left text-xs font-bold text-slate-500 hover:text-slate-700 py-2 px-3 -mx-1 rounded-xl hover:bg-slate-50 lg:cursor-pointer"
             >
               Mudar e continuar no dia atual
             </button>

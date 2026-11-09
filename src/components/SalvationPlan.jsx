@@ -130,24 +130,24 @@ function Jornada({ state, feitos, atual, anonimo, onBack, onAbrir, onIntro, onCo
   const R = 52, C = 2 * Math.PI * R;
 
   return (
-    <div ref={scroller} className="fixed inset-0 lg:left-72 z-[100] overflow-y-auto bg-[#0b1026] text-white" data-lenis-prevent>
+    <div ref={scroller} className="fixed inset-0 lg:left-72 z-[100] overflow-y-auto lg:overflow-hidden bg-[#0b1026] text-white lg:flex lg:flex-row" data-lenis-prevent>
       {/* Céu */}
-      <header className="relative overflow-hidden min-h-[92svh] flex flex-col" style={{ "--ps-glow": "#fbbf24" }}>
+      <header className="relative overflow-hidden min-h-[92svh] lg:min-h-0 lg:w-[460px] lg:shrink-0 lg:h-full lg:overflow-y-auto flex flex-col lg:border-r lg:border-amber-900/40" style={{ "--ps-glow": "#fbbf24" }}>
         <div className="absolute inset-0 bg-gradient-to-b from-[#05071a] via-[#1e1b4b] to-[#78350f]" />
         <div className="ps-stars" />
         <div className="ps-aurora" />
-        <div className="relative z-10 flex items-center justify-between px-5 pt-5">
-          <button onClick={onBack} aria-label="Voltar" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition">
+        <div className="relative z-10 flex items-center justify-between px-5 pt-5 lg:px-8 lg:pt-8">
+          <button onClick={onBack} aria-label="Voltar" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition lg:cursor-pointer">
             <ArrowLeft size={22} />
           </button>
           {state && (
-            <button onClick={onRecomecar} aria-label="Recomeçar" className="p-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition">
+            <button onClick={onRecomecar} aria-label="Recomeçar" className="p-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition lg:cursor-pointer">
               <RotateCcw size={18} />
             </button>
           )}
         </div>
 
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pb-10">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 pb-10 lg:px-8 lg:py-12">
           <p className="ps-reveal text-[11px] font-bold uppercase tracking-[0.35em] text-amber-200/80">Biblos · 30 dias</p>
           <h1 className="ps-reveal ps-display text-5xl sm:text-6xl font-semibold leading-[0.95] mt-4" style={{ transitionDelay: ".1s" }}>
             O Plano
@@ -185,12 +185,12 @@ function Jornada({ state, feitos, atual, anonimo, onBack, onAbrir, onIntro, onCo
 
           <button
             onClick={onComecar}
-            className="ps-reveal mt-8 px-8 py-4 rounded-full bg-gradient-to-r from-amber-300 to-amber-500 text-slate-900 font-bold shadow-[0_0_40px_-6px_#f59e0b] active:scale-95 transition"
+            className="ps-reveal mt-8 px-8 py-4 rounded-full bg-gradient-to-r from-amber-300 to-amber-500 text-slate-900 font-bold shadow-[0_0_40px_-6px_#f59e0b] active:scale-95 transition lg:hover:shadow-[0_0_50px_#f59e0b] lg:cursor-pointer"
             style={{ transitionDelay: ".5s" }}
           >
             {!state ? "Começar a jornada" : total >= P.days ? "Rever a jornada" : `Continuar · Dia ${atual}`}
           </button>
-          <button onClick={onIntro} className="ps-reveal mt-4 text-sm text-amber-100/80 underline underline-offset-4 decoration-amber-200/40" style={{ transitionDelay: ".6s" }}>
+          <button onClick={onIntro} className="ps-reveal mt-4 text-sm text-amber-100/80 underline underline-offset-4 decoration-amber-200/40 lg:cursor-pointer" style={{ transitionDelay: ".6s" }}>
             Antes de começar: a história inteira
           </button>
           {anonimo && (
@@ -200,8 +200,8 @@ function Jornada({ state, feitos, atual, anonimo, onBack, onAbrir, onIntro, onCo
       </header>
 
       {/* O caminho: 7 blocos, 30 dias */}
-      <main className="relative bg-gradient-to-b from-[#78350f] via-[#1c1917] to-[#0c0a09] px-5 pb-16">
-        <div className="max-w-2xl mx-auto">
+      <main className="relative bg-gradient-to-b from-[#78350f] via-[#1c1917] to-[#0c0a09] px-5 pb-16 lg:flex-1 lg:h-full lg:overflow-y-auto lg:px-12 lg:py-10">
+        <div className="max-w-2xl mx-auto lg:max-w-3xl">
         {P.blocos.map((b) => (
           <Bloco key={b.id} b={b} feitos={feitos} atual={state ? atual : null} onAbrir={onAbrir} />
         ))}
@@ -299,100 +299,109 @@ function Dia({ n, feito, anonimo, onBack, onIr, onConcluir, onDesfazer, goToBibl
       {burst && <Explosao />}
 
       {/* Céu do ato */}
-      <header className="relative overflow-hidden text-white" style={{ background: `linear-gradient(160deg, ${t.ceu[0]}, ${t.ceu[1]} 50%, ${t.ceu[2]})` }}>
+      <header className="relative overflow-hidden text-white lg:py-6" style={{ background: `linear-gradient(160deg, ${t.ceu[0]}, ${t.ceu[1]} 50%, ${t.ceu[2]})` }}>
         {d.bloco === "A" && <div className="ps-stars" />}
         <div className="ps-aurora" />
         <div className="ps-rays" />
-        <div className="relative z-10 flex items-center justify-between px-5 pt-5">
-          <button onClick={onBack} aria-label="Voltar à jornada" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition">
+        <div className="relative z-10 flex items-center justify-between px-5 pt-5 lg:px-8">
+          <button onClick={onBack} aria-label="Voltar à jornada" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition lg:cursor-pointer">
             <ArrowLeft size={22} />
           </button>
-          <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/70">Dia {n} de {P.days}</span>
+          <span className="text-[11px] lg:text-xs font-bold uppercase tracking-[0.3em] text-white/70">Dia {n} de {P.days}</span>
           <span className="w-9" />
         </div>
-        <div className="relative z-10 px-6 pt-8 pb-12 text-center">
+        <div className="relative z-10 px-6 pt-8 pb-12 text-center lg:py-8">
           <div className="mx-auto w-16 h-16 rounded-3xl bg-white/10 backdrop-blur flex items-center justify-center" style={{ color: t.luz, boxShadow: `0 0 50px -6px ${t.luz}` }}>
             <t.Icon size={30} />
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/60 mt-5">Bloco {b.id} · {b.titulo}</p>
-          <h1 className="ps-display text-[2.1rem] font-semibold leading-tight mt-3">{d.titulo}</h1>
+          <p className="text-[10px] lg:text-xs font-bold uppercase tracking-[0.3em] text-white/60 mt-5">Bloco {b.id} · {b.titulo}</p>
+          <h1 className="ps-display text-[2.1rem] lg:text-4xl font-semibold leading-tight mt-3">{d.titulo}</h1>
         </div>
       </header>
 
-      <main className="relative -mt-6 rounded-t-[2rem] bg-[#faf7f2] px-5 pt-7 pb-36 max-w-2xl mx-auto">
-        {/* Leitura principal com o texto */}
-        <section className="ps-reveal">
-          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-stone-400">Leitura principal</p>
-          <h2 className="ps-display text-2xl font-bold text-stone-800 mt-1">{d.leituraPrincipal}</h2>
-          <div className="mt-4 space-y-5">
-            {principais.map((r, i) => (
-              <Passagem key={i} r={r} varios={principais.length > 1} onAbrir={() => goToBibleReference(r.ref)} />
-            ))}
+      <main className="relative -mt-6 rounded-t-[2rem] bg-[#faf7f2] px-5 pt-7 pb-36 max-w-2xl mx-auto lg:max-w-5xl lg:px-10 lg:pt-10 lg:pb-24">
+        {/* Layout em duas colunas no desktop: Leitura à esquerda, Explicação/Meditar à direita */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start">
+          <div>
+            {/* Leitura principal com o texto */}
+            <section className="ps-reveal">
+              <p className="text-[11px] lg:text-xs font-bold uppercase tracking-[0.25em] text-stone-400">Leitura principal</p>
+              <h2 className="ps-display text-2xl lg:text-3xl font-bold text-stone-800 mt-1">{d.leituraPrincipal}</h2>
+              <div className="mt-4 space-y-5">
+                {principais.map((r, i) => (
+                  <Passagem key={i} r={r} varios={principais.length > 1} onAbrir={() => goToBibleReference(r.ref)} />
+                ))}
+              </div>
+            </section>
+
+            {/* Apoios */}
+            {apoios.length > 0 && (
+              <section className="ps-reveal mt-8">
+                <p className="text-[11px] lg:text-xs font-bold uppercase tracking-[0.25em] text-stone-400">Para aprofundar</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {apoios.map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => goToBibleReference(r.ref)}
+                      className="px-3 py-1.5 rounded-full bg-white border border-stone-200 text-sm text-stone-700 hover:border-[var(--ps-accent)] hover:text-[var(--ps-accent)] transition active:scale-95 lg:cursor-pointer"
+                    >
+                      {rotulo(r)}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
-        </section>
 
-        {/* Apoios */}
-        <section className="ps-reveal mt-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-stone-400">Para aprofundar</p>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {apoios.map((r, i) => (
-              <button
-                key={i}
-                onClick={() => goToBibleReference(r.ref)}
-                className="px-3 py-1.5 rounded-full bg-white border border-stone-200 text-sm text-stone-700 hover:border-[var(--ps-accent)] hover:text-[var(--ps-accent)] transition active:scale-95"
-              >
-                {rotulo(r)}
-              </button>
-            ))}
-          </div>
-        </section>
+          <div className="lg:mt-0">
+            {/* Explicação */}
+            <section className="ps-reveal mt-10 lg:mt-0">
+              <p className="ps-dropcap font-serif text-[1.075rem] lg:text-[1.15rem] leading-[1.85] text-stone-700 text-pretty">{d.texto}</p>
+            </section>
 
-        {/* Explicação */}
-        <section className="ps-reveal mt-10">
-          <p className="ps-dropcap font-serif text-[1.075rem] leading-[1.85] text-stone-700 text-pretty">{d.texto}</p>
-        </section>
+            {/* Fonte */}
+            <section className="ps-reveal mt-8 flex gap-3 rounded-2xl bg-stone-100/80 p-4">
+              <Library size={18} className="text-stone-400 shrink-0 mt-0.5" />
+              <p className="text-[13px] leading-relaxed text-stone-500">
+                <b className="text-stone-600">Fonte: </b>
+                {d.fonte}
+              </p>
+            </section>
 
-        {/* Fonte */}
-        <section className="ps-reveal mt-8 flex gap-3 rounded-2xl bg-stone-100/80 p-4">
-          <Library size={18} className="text-stone-400 shrink-0 mt-0.5" />
-          <p className="text-[13px] leading-relaxed text-stone-500">
-            <b className="text-stone-600">Fonte: </b>
-            {d.fonte}
-          </p>
-        </section>
+            {/* Para meditar */}
+            <section className="ps-reveal ps-meditar mt-8 rounded-3xl">
+              <div className="rounded-3xl bg-white p-6 text-center">
+                <Feather size={22} className="mx-auto" style={{ color: t.acento }} />
+                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-stone-400 mt-3">Para meditar</p>
+                <p className="ps-display italic text-[1.35rem] lg:text-[1.5rem] leading-snug text-stone-800 mt-3">{d.meditar}</p>
+              </div>
+            </section>
 
-        {/* Para meditar */}
-        <section className="ps-reveal ps-meditar mt-8 rounded-3xl">
-          <div className="rounded-3xl bg-white p-6 text-center">
-            <Feather size={22} className="mx-auto" style={{ color: t.acento }} />
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-stone-400 mt-3">Para meditar</p>
-            <p className="ps-display italic text-[1.35rem] leading-snug text-stone-800 mt-3">{d.meditar}</p>
-          </div>
-        </section>
-
-        {/* Concluir e navegar */}
-        <div className="mt-10">
-          {feito ? (
-            <button onClick={onDesfazer} className="w-full py-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 font-bold flex items-center justify-center gap-2">
-              <Check size={18} /> Dia concluído · tocar para desfazer
-            </button>
-          ) : (
-            <button
-              onClick={concluir}
-              disabled={anonimo}
-              className="w-full py-4 rounded-2xl text-white font-bold shadow-lg active:scale-95 transition disabled:opacity-50"
-              style={{ background: `linear-gradient(90deg, ${t.ceu[1]}, ${t.acento})` }}
-            >
-              {anonimo ? "Entre na sua conta para salvar" : "Concluir o dia · Amém"}
-            </button>
-          )}
-          <div className="flex justify-between mt-4">
-            <button onClick={() => onIr(n - 1)} disabled={n <= 1} className="flex items-center gap-1 px-3 py-2 text-sm text-stone-500 disabled:opacity-30">
-              <ChevronLeft size={18} /> Dia {n - 1 || ""}
-            </button>
-            <button onClick={() => onIr(n + 1)} disabled={n >= P.days} className="flex items-center gap-1 px-3 py-2 text-sm text-stone-500 disabled:opacity-30">
-              Dia {n < P.days ? n + 1 : ""} <ChevronRight size={18} />
-            </button>
+            {/* Concluir e navegar */}
+            <div className="mt-10">
+              {feito ? (
+                <button onClick={onDesfazer} className="w-full py-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 font-bold flex items-center justify-center gap-2 lg:cursor-pointer">
+                  <Check size={18} /> Dia concluído · tocar para desfazer
+                </button>
+              ) : (
+                <button
+                  onClick={concluir}
+                  disabled={anonimo}
+                  className="w-full py-4 rounded-2xl text-white font-bold shadow-lg active:scale-95 transition disabled:opacity-50 lg:cursor-pointer"
+                  style={{ background: `linear-gradient(90deg, ${t.ceu[1]}, ${t.acento})` }}
+                >
+                  {anonimo ? "Entre na sua conta para salvar" : "Concluir o dia · Amém"}
+                </button>
+              )}
+              <div className="flex justify-between mt-4">
+                <button onClick={() => onIr(n - 1)} disabled={n <= 1} className="flex items-center gap-1 px-3 py-2 text-sm text-stone-500 disabled:opacity-30 lg:cursor-pointer">
+                  <ChevronLeft size={18} /> Dia {n - 1 || ""}
+                </button>
+                <button onClick={() => onIr(n + 1)} disabled={n >= P.days} className="flex items-center gap-1 px-3 py-2 text-sm text-stone-500 disabled:opacity-30 lg:cursor-pointer">
+                  Dia {n < P.days ? n + 1 : ""} <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -443,11 +452,11 @@ function Passagem({ r, varios, onAbrir }) {
       </div>
       <div className="flex items-center justify-between mt-3">
         {longo ? (
-          <button onClick={() => setInteiro((x) => !x)} className="text-sm font-bold text-[var(--ps-accent)]">
+          <button onClick={() => setInteiro((x) => !x)} className="text-sm font-bold text-[var(--ps-accent)] lg:cursor-pointer">
             {inteiro ? "Mostrar menos" : `Ler tudo (${versos.length} versículos)`}
           </button>
         ) : <span />}
-        <button onClick={onAbrir} className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800">
+        <button onClick={onAbrir} className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 lg:cursor-pointer">
           <BookOpen size={16} /> Abrir na Bíblia
         </button>
       </div>
@@ -477,33 +486,33 @@ function Introducao({ onBack }) {
       <header className="relative overflow-hidden text-white bg-gradient-to-b from-[#05071a] via-[#1e1b4b] to-[#78350f]" style={{ "--ps-glow": "#fbbf24" }}>
         <div className="ps-stars" />
         <div className="ps-aurora" />
-        <div className="relative z-10 px-5 pt-5">
-          <button onClick={onBack} aria-label="Voltar" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition">
+        <div className="relative z-10 px-5 pt-5 lg:px-8 lg:pt-8">
+          <button onClick={onBack} aria-label="Voltar" className="p-2 -ml-2 rounded-full bg-white/10 backdrop-blur hover:bg-white/20 transition lg:cursor-pointer">
             <ArrowLeft size={22} />
           </button>
         </div>
-        <div className="relative z-10 px-6 pt-6 pb-12 text-center">
+        <div className="relative z-10 px-6 pt-6 pb-12 text-center lg:py-10">
           <ScrollText className="mx-auto text-amber-200" size={30} />
-          <h1 className="ps-display text-4xl font-semibold leading-tight mt-4">Uma só história</h1>
-          <p className="ps-display italic text-xl text-amber-100/90 mt-2">do decreto eterno à nova criação</p>
+          <h1 className="ps-display text-4xl lg:text-5xl font-semibold leading-tight mt-4">Uma só história</h1>
+          <p className="ps-display italic text-xl lg:text-2xl text-amber-100/90 mt-2">do decreto eterno à nova criação</p>
         </div>
       </header>
-      <main className="relative -mt-6 rounded-t-[2rem] bg-[#faf7f2] px-5 pt-8 pb-24 max-w-2xl mx-auto">
+      <main className="relative -mt-6 rounded-t-[2rem] bg-[#faf7f2] px-5 pt-8 pb-24 max-w-2xl mx-auto lg:max-w-4xl lg:px-12 lg:pt-12 lg:pb-32">
         {P.intro.map((s) => (
           <section key={s.secao} className="ps-reveal mb-10">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-700/70">{s.secao}</p>
-            <h2 className="ps-display text-2xl font-bold text-stone-800 leading-tight mt-1">{s.titulo}</h2>
+            <p className="text-[11px] lg:text-xs font-bold uppercase tracking-[0.25em] text-amber-700/70">{s.secao}</p>
+            <h2 className="ps-display text-2xl lg:text-3xl font-bold text-stone-800 leading-tight mt-1">{s.titulo}</h2>
             {s.paragrafos.map((p, i) => (
-              <p key={i} className="font-serif text-[1.04rem] leading-[1.8] text-stone-700 mt-4 text-pretty">{p}</p>
+              <p key={i} className="font-serif text-[1.04rem] lg:text-[1.12rem] leading-[1.8] text-stone-700 mt-4 text-pretty">{p}</p>
             ))}
           </section>
         ))}
         {P.comoUsar && (
-          <section className="ps-reveal rounded-3xl bg-amber-50 border border-amber-200/70 p-5">
-            <p className="font-serif text-[1rem] leading-[1.75] text-stone-700">{P.comoUsar}</p>
+          <section className="ps-reveal rounded-3xl bg-amber-50 border border-amber-200/70 p-5 lg:p-7">
+            <p className="font-serif text-[1rem] lg:text-[1.08rem] leading-[1.75] text-stone-700">{P.comoUsar}</p>
           </section>
         )}
-        <button onClick={onBack} className="mt-10 w-full py-4 rounded-2xl bg-stone-900 text-amber-100 font-bold">
+        <button onClick={onBack} className="mt-10 w-full py-4 rounded-2xl bg-stone-900 text-amber-100 font-bold lg:cursor-pointer">
           Ir para a jornada
         </button>
       </main>
@@ -512,8 +521,8 @@ function Introducao({ onBack }) {
 }
 
 function Rodape() {
-  const item = "ps-details rounded-2xl bg-white/5 border border-white/10";
-  const resumo = "flex items-center justify-between px-5 py-4 text-sm font-bold text-white/85";
+  const item = "ps-details rounded-2xl bg-white/5 border border-white/10 lg:cursor-pointer";
+  const resumo = "flex items-center justify-between px-5 py-4 text-sm font-bold text-white/85 lg:cursor-pointer";
   return (
     <div className="mt-6 space-y-3">
       <details className={item}>
