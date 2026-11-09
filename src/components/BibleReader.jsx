@@ -107,6 +107,16 @@ export default function BibleReader({
   const [verses, setVerses] = useState([]);
   const [showBookSelector, setShowBookSelector] = useState(false);
 
+  // Desktop testament state
+  const [desktopTestament, setDesktopTestament] = useState(() =>
+    NT_BOOKS.includes(currentBook) ? "NT" : "OT"
+  );
+
+  useEffect(() => {
+    if (NT_BOOKS.includes(currentBook)) setDesktopTestament("NT");
+    else setDesktopTestament("OT");
+  }, [currentBook]);
+
   // Chapter/Verse Selector State
   const [showChapterSelector, setShowChapterSelector] = useState(false);
   const [selectionStep, setSelectionStep] = useState("chapter"); // 'chapter' | 'verse'
@@ -233,77 +243,191 @@ export default function BibleReader({
   };
 
   return (
-    <div className="pb-20 animate-enter-view">
-      {/* READER HEADER - FULL (visible when scrolled up) */}
-      <div
-        className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-between bg-white/95 backdrop-blur border-b border-slate-100 py-2 px-3 shadow-sm mb-2 h-14 ${
-          isHeaderVisible
-            ? "translate-y-0 opacity-100"
-            : "-translate-y-full opacity-0 pointer-events-none"
-        }`}
-      >
-        {/* PREV BUTTON */}
-        <button
-          onClick={handlePrev}
-          disabled={chapter === 1}
-          className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
-        >
-          <ChevronLeft size={20} className="text-slate-600" />
-        </button>
-
-        {/* CENTER INFO */}
-        <div className="flex items-center flex-col flex-1">
+    <div className="pb-20 lg:pb-8 animate-enter-view lg:flex lg:flex-row lg:h-full lg:overflow-hidden">
+      {/* DESKTOP SIDE PANEL (LIVROS E CAPÍTULOS) - Only visible on lg: (>= 1024px) */}
+      <aside className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-slate-50/50 lg:h-full lg:overflow-hidden select-none">
+        {/* Testament Switcher Tabs */}
+        <div className="p-3 border-b border-slate-200/60 flex gap-1.5 bg-white/80 shrink-0">
           <button
-            onClick={() => setShowBookSelector(true)}
-            className="flex items-center rounded-full transition-all group gap-1.5 px-3 py-1 hover:bg-slate-50 border border-transparent hover:border-slate-200"
+            onClick={() => setDesktopTestament("OT")}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              desktopTestament === "OT"
+                ? "bg-amber-500 text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
           >
-            <span className="font-serif font-bold text-slate-800 group-hover:text-amber-700 leading-none text-lg">
-              {book}
-            </span>
-            <Book
-              size={14}
-              className="text-slate-400 group-hover:text-amber-500"
-            />
+            Antigo (39)
           </button>
-
           <button
-            onClick={() => {
-              setSelectionStep("chapter");
-              setShowChapterSelector(true);
-            }}
-            className="font-bold text-amber-600 uppercase tracking-widest leading-none rounded text-[10px] mt-0.5 hover:bg-amber-50 px-2 py-0.5"
+            onClick={() => setDesktopTestament("NT")}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              desktopTestament === "NT"
+                ? "bg-amber-500 text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
           >
-            CAPÍTULO {chapter}
+            Novo (27)
           </button>
         </div>
 
-        {/* NEXT BUTTON */}
-        <button
-          onClick={handleNext}
-          disabled={isLastChapter}
-          className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
-        >
-          <ChevronRight size={20} className="text-slate-600" />
-        </button>
-      </div>
+        {/* Scrollable Books List */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-0.5 no-scrollbar">
+          {(desktopTestament === "OT" ? OT_BOOKS : NT_BOOKS).map((b) => (
+            <button
+              key={b}
+              onClick={() => {
+                setCurrentBook(b);
+                setCurrentChapter(1);
+                didRestore.current = false;
+              }}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                book === b
+                  ? "bg-amber-500 text-white font-bold shadow-sm"
+                  : "text-slate-600 hover:bg-slate-200/60"
+              }`}
+            >
+              <span className="truncate">{b}</span>
+              <span
+                className={`text-[10px] ml-1 shrink-0 ${
+                  book === b ? "text-white/80" : "text-slate-400"
+                }`}
+              >
+                {BIBLE_CHAPTER_COUNTS[b]} cap
+              </span>
+            </button>
+          ))}
+        </div>
 
-      {/* MINI HEADER - Book name only (visible when scrolled down) */}
-      <div
-        className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-center bg-white/95 backdrop-blur-sm border-b border-slate-100/50 h-8 ${
-          !isHeaderVisible
-            ? "translate-y-0 opacity-100"
-            : "-translate-y-full opacity-0 pointer-events-none"
-        }`}
-      >
-        <button
-          onClick={() => setShowBookSelector(true)}
-          className="px-3 py-0.5 rounded-full hover:bg-slate-50 transition-all"
+        {/* Chapters Grid for Active Book */}
+        <div className="p-3 border-t border-slate-200/60 bg-white/80 max-h-48 overflow-y-auto no-scrollbar shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+              Capítulos • {book}
+            </span>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {Array.from(
+              { length: BIBLE_CHAPTER_COUNTS[book] || 50 },
+              (_, i) => i + 1
+            ).map((num) => (
+              <button
+                key={num}
+                onClick={() => setCurrentChapter(num)}
+                className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  chapter === num
+                    ? "bg-amber-500 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-amber-100/70 hover:text-amber-800"
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* READING COLUMN CONTAINER */}
+      <div className="flex-1 lg:overflow-y-auto lg:h-full lg:px-12 lg:py-8 lg:flex lg:flex-col lg:items-center no-scrollbar w-full">
+        {/* DESKTOP READING HEADER - Only visible on lg: (>= 1024px) */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between lg:w-full lg:max-w-[70ch] lg:pb-6 lg:mb-8 lg:border-b lg:border-slate-100 shrink-0">
+          <button
+            onClick={handlePrev}
+            disabled={chapter === 1}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-slate-100 text-xs font-bold text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <ChevronLeft size={16} />
+            <span>Capítulo Anterior</span>
+          </button>
+
+          <div className="text-center">
+            <h2 className="font-serif font-bold text-2xl text-slate-900 leading-tight">
+              {book} {chapter}
+            </h2>
+            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">
+              {desktopTestament === "OT" ? "Antigo Testamento" : "Novo Testamento"}
+            </span>
+          </div>
+
+          <button
+            onClick={handleNext}
+            disabled={isLastChapter}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-slate-100 text-xs font-bold text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            <span>Próximo Capítulo</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        {/* READER HEADER - FULL (visible when scrolled up, mobile/tablet only) */}
+        <div
+          className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex lg:hidden items-center justify-between bg-white/95 backdrop-blur border-b border-slate-100 py-2 px-3 shadow-sm mb-2 h-14 ${
+            isHeaderVisible
+              ? "translate-y-0 opacity-100"
+              : "-translate-y-full opacity-0 pointer-events-none"
+          }`}
         >
-          <span className="font-serif font-bold text-slate-700 text-xs leading-none">
-            {book} {chapter}
-          </span>
-        </button>
-      </div>
+          {/* PREV BUTTON */}
+          <button
+            onClick={handlePrev}
+            disabled={chapter === 1}
+            className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
+          >
+            <ChevronLeft size={20} className="text-slate-600" />
+          </button>
+
+          {/* CENTER INFO */}
+          <div className="flex items-center flex-col flex-1">
+            <button
+              onClick={() => setShowBookSelector(true)}
+              className="flex items-center rounded-full transition-all group gap-1.5 px-3 py-1 hover:bg-slate-50 border border-transparent hover:border-slate-200"
+            >
+              <span className="font-serif font-bold text-slate-800 group-hover:text-amber-700 leading-none text-lg">
+                {book}
+              </span>
+              <Book
+                size={14}
+                className="text-slate-400 group-hover:text-amber-500"
+              />
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectionStep("chapter");
+                setShowChapterSelector(true);
+              }}
+              className="font-bold text-amber-600 uppercase tracking-widest leading-none rounded text-[10px] mt-0.5 hover:bg-amber-50 px-2 py-0.5"
+            >
+              CAPÍTULO {chapter}
+            </button>
+          </div>
+
+          {/* NEXT BUTTON */}
+          <button
+            onClick={handleNext}
+            disabled={isLastChapter}
+            className="rounded-full hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-500 p-1.5 w-8"
+          >
+            <ChevronRight size={20} className="text-slate-600" />
+          </button>
+        </div>
+
+        {/* MINI HEADER - Book name only (visible when scrolled down, mobile/tablet only) */}
+        <div
+          className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex lg:hidden items-center justify-center bg-white/95 backdrop-blur-sm border-b border-slate-100/50 h-8 ${
+            !isHeaderVisible
+              ? "translate-y-0 opacity-100"
+              : "-translate-y-full opacity-0 pointer-events-none"
+          }`}
+        >
+          <button
+            onClick={() => setShowBookSelector(true)}
+            className="px-3 py-0.5 rounded-full hover:bg-slate-50 transition-all"
+          >
+            <span className="font-serif font-bold text-slate-700 text-xs leading-none">
+              {book} {chapter}
+            </span>
+          </button>
+        </div>
 
       {/* CHAPTER/VERSE SELECTOR MODAL */}
       {showChapterSelector &&
@@ -460,7 +584,7 @@ export default function BibleReader({
         )}
 
       {/* TEXT CONTENT */}
-      <div className="px-4 max-w-2xl mx-auto">
+      <div className="px-4 max-w-2xl lg:max-w-[70ch] mx-auto w-full">
         {loading || verses.length === 0 ? (
           <div className="space-y-4 animate-pulse mt-8">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -485,7 +609,7 @@ export default function BibleReader({
                   <span className="absolute left-0 top-1.5 text-[9px] font-bold text-slate-300 select-none">
                     {v.number}
                   </span>
-                  <p className="text-[17px] leading-relaxed text-slate-700 font-serif">
+                  <p className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif">
                     <SmartText
                       text={v.text}
                       entities={entities}
@@ -500,7 +624,7 @@ export default function BibleReader({
               <div className="pt-8 pb-4 flex justify-center">
                 <button
                   onClick={handleNext}
-                  className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all"
+                  className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all cursor-pointer"
                 >
                   Próximo Capítulo
                 </button>
@@ -508,6 +632,7 @@ export default function BibleReader({
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

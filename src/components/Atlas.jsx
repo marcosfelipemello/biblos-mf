@@ -98,10 +98,8 @@ export default function Atlas({
   if (view === "home") {
     return (
       <div className="flex flex-col items-center pt-6 pb-20 animate-enter-view">
-        {/* Categories Grid - Compact */}
-
-        {/* Categories Grid - Compact */}
-        <div className="w-full grid grid-cols-2 gap-3 px-3">
+        {/* Categories Grid - Compact on mobile, 3-cols on desktop */}
+        <div className="w-full grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5 px-3 lg:px-8 lg:max-w-4xl lg:mx-auto">
           {categories.map((cat, index) => {
             const count = entities.filter(cat.filter).length;
             const Icon = cat.icon;
@@ -110,18 +108,18 @@ export default function Atlas({
               <button
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat)}
-                className={`flex flex-col items-center justify-center p-4 rounded-3xl border border-slate-100 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 bg-white group active:scale-95 active:bg-slate-50`}
+                className={`flex flex-col items-center justify-center p-4 lg:p-6 rounded-3xl border border-slate-100 shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] hover:shadow-md hover:-translate-y-0.5 lg:hover:shadow-lg lg:hover:-translate-y-1 transition-all duration-300 bg-white group active:scale-95 active:bg-slate-50 lg:cursor-pointer`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div
-                  className={`p-3 rounded-2xl ${cat.bg} mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}
+                  className={`p-3 lg:p-4 rounded-2xl ${cat.bg} mb-3 group-hover:scale-110 transition-transform duration-300 shadow-sm`}
                 >
                   <Icon size={22} className={cat.color} />
                 </div>
-                <span className="font-bold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">
+                <span className="font-bold text-slate-800 text-sm lg:text-base group-hover:text-amber-600 transition-colors">
                   {cat.label}
                 </span>
-                <span className="text-slate-400 text-[10px] font-medium mt-0.5">
+                <span className="text-slate-400 text-[10px] lg:text-xs font-medium mt-0.5">
                   {count} {count === 1 ? "item" : "itens"}
                 </span>
               </button>
@@ -144,7 +142,7 @@ export default function Atlas({
   // 2. RESULTS: List
   if (view === "results") {
     return (
-      <div className="space-y-3 pt-4 pb-20 animate-enter-view">
+      <div className="pt-4 pb-20 animate-enter-view lg:max-w-4xl lg:mx-auto lg:px-8">
         {/* Shows header context if needed, or just list */}
         {results.length === 0 && (
           <div className="text-center py-10 text-slate-400">
@@ -153,54 +151,56 @@ export default function Atlas({
           </div>
         )}
 
-        {results.map((item, index) => {
-          const style = getTypeStyles(item.type);
-          const Icon = style.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={async () => {
-                let finalItem = { ...item };
-                // Auto-fix origin if missing (legacy logic from Dashboard)
-                if (!finalItem.origin_ref) {
-                  try {
-                    const term = finalItem.search_term || finalItem.name;
-                    const found = await searchVerses(term, {
-                      allowRegex: true,
-                    });
-                    if (found && found.length > 0) {
-                      const first = found[0];
-                      finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+          {results.map((item, index) => {
+            const style = getTypeStyles(item.type);
+            const Icon = style.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={async () => {
+                  let finalItem = { ...item };
+                  // Auto-fix origin if missing (legacy logic from Dashboard)
+                  if (!finalItem.origin_ref) {
+                    try {
+                      const term = finalItem.search_term || finalItem.name;
+                      const found = await searchVerses(term, {
+                        allowRegex: true,
+                      });
+                      if (found && found.length > 0) {
+                        const first = found[0];
+                        finalItem.origin_ref = `${first.book.name} ${first.chapter}:${first.number}`;
+                      }
+                    } catch (e) {
+                      console.warn("Auto-detect origin failed", e);
                     }
-                  } catch (e) {
-                    console.warn("Auto-detect origin failed", e);
                   }
-                }
-                selectEntity(finalItem);
-              }}
-              style={{ animationDelay: `${index * 50}ms` }}
-              className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50"
-            >
-              <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
+                  selectEntity(finalItem);
+                }}
+                style={{ animationDelay: `${index * 50}ms` }}
+                className="animate-stagger-item w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-amber-200 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center group text-left active:scale-[0.98] active:bg-slate-50 lg:cursor-pointer"
               >
-                <Icon size={20} className={style.color} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
-                  {item.name}
-                </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
-                  {item.category || style.label}
-                </span>
-              </div>
-              <ChevronRight
-                size={20}
-                className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
-              />
-            </button>
-          );
-        })}
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.gradient} flex items-center justify-center mr-4 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110 shadow-inner`}
+                >
+                  <Icon size={20} className={style.color} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-slate-800 truncate group-hover:text-amber-700 transition-colors duration-300">
+                    {item.name}
+                  </h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 text-slate-500 mt-1 border border-slate-100">
+                    {item.category || style.label}
+                  </span>
+                </div>
+                <ChevronRight
+                  size={20}
+                  className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all duration-300"
+                />
+              </button>
+            );
+          })}
+        </div>
 
         {/* Dynamic Search Button (if typing) */}
         {searchTerm.length > 2 && (
@@ -234,7 +234,7 @@ export default function Atlas({
                   console.warn(e);
                 }
               }}
-              className="w-full p-5 rounded-2xl bg-amber-500 text-white shadow-xl flex items-center group"
+              className="w-full p-5 rounded-2xl bg-amber-500 text-white shadow-xl flex items-center group lg:cursor-pointer"
             >
               <div className="mr-4 bg-white/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
                 <BookOpen size={24} />
@@ -256,13 +256,13 @@ export default function Atlas({
   // 3. DETAILS
   if (view === "details" && selectedEntity) {
     return (
-      <div className="animate-enter-view pb-20">
+      <div className="animate-enter-view pb-20 lg:max-w-4xl lg:mx-auto lg:px-8 lg:py-4">
         {/* Back button logic is handled by Dashboard Header, but maybe we want one here too? 
             Currently Dashboard handles the "Back" arrow in header. 
             So we just render content. */}
 
         {/* HERO CARD */}
-        <div className="relative overflow-hidden bg-white rounded-[2rem] p-6 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8 group">
+        <div className="relative overflow-hidden bg-white rounded-[2rem] p-6 lg:p-8 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 mb-8 group">
           <div className="absolute top-0 right-0 p-6 opacity-10 grayscale group-hover:grayscale-0 transition-all duration-500">
             {/* Background Icon */}
             {(() => {
@@ -351,7 +351,7 @@ export default function Atlas({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                 {verses.length === 0 && (
                   <p className="text-slate-400 italic text-center p-4">
                     Nenhuma menção encontrada.

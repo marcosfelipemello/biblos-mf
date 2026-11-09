@@ -114,18 +114,18 @@ export default function Devotionals({
   ];
 
   return (
-    <div className="pt-4 pb-32 animate-enter-view">
-      <div className="grid grid-cols-2 gap-3 px-3 mt-6">
+    <div className="pt-4 pb-32 animate-enter-view lg:max-w-4xl lg:mx-auto lg:px-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5 px-3 lg:px-0 mt-6 lg:mt-8">
         {features.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveFeature(item.id)}
-            className={`bg-white p-4 rounded-3xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-left active:scale-95 active:bg-slate-50 ${
-              item.full ? "col-span-2 flex items-center gap-4" : ""
+            className={`bg-white p-4 lg:p-6 rounded-3xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden group hover:shadow-lg hover:-translate-y-0.5 lg:hover:shadow-xl lg:hover:-translate-y-1 transition-all duration-300 text-left active:scale-95 active:bg-slate-50 lg:cursor-pointer ${
+              item.full ? "col-span-2 lg:col-span-3 flex items-center gap-4 lg:gap-6" : ""
             }`}
           >
             <div
-              className={`w-12 h-12 rounded-2xl ${
+              className={`w-12 h-12 lg:w-14 lg:h-14 rounded-2xl ${
                 item.color
               } flex items-center justify-center mb-0 group-hover:scale-110 transition-transform duration-300 shadow-sm ${
                 item.full ? "mb-0 shrink-0" : "mb-3"
@@ -134,10 +134,10 @@ export default function Devotionals({
               <item.icon size={22} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800 leading-tight mb-0.5 group-hover:text-amber-600 transition-colors">
+              <h3 className="text-sm lg:text-base font-bold text-slate-800 leading-tight mb-0.5 group-hover:text-amber-600 transition-colors">
                 {item.title}
               </h3>
-              <p className="text-slate-400 text-[10px] leading-relaxed font-medium">
+              <p className="text-slate-400 text-[10px] lg:text-xs leading-relaxed font-medium">
                 {item.desc}
               </p>
             </div>
@@ -155,7 +155,7 @@ function Header({ title, onBack }) {
     <div className="flex items-center gap-4 mb-6 sticky top-0 bg-white/50 backdrop-blur z-20 py-2">
       <button
         onClick={onBack}
-        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors lg:cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>
@@ -169,12 +169,12 @@ function MannaView({ onBack }) {
   const manna = getDailyManna();
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up" data-lenis-prevent>
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-slide-up lg:static lg:inset-auto lg:z-auto lg:overflow-visible lg:max-w-4xl lg:mx-auto lg:bg-transparent" data-lenis-prevent>
       {/* HEADER */}
-      <div className="flex items-center gap-3 p-6 mb-4 bg-white/50 backdrop-blur-md sticky top-0 z-10">
+      <div className="flex items-center gap-3 p-6 mb-4 bg-white/50 backdrop-blur-md sticky top-0 z-10 lg:px-0 lg:bg-transparent">
         <button
           onClick={onBack}
-          className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+          className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors lg:cursor-pointer"
         >
           <ArrowLeft size={24} />
         </button>
@@ -183,8 +183,8 @@ function MannaView({ onBack }) {
         </h2>
       </div>
 
-      <div className="px-6 pb-24">
-        <div className="bg-amber-50 rounded-3xl p-8 shadow-sm border border-amber-100 flex flex-col items-center text-center relative overflow-hidden">
+      <div className="px-6 pb-24 lg:px-0">
+        <div className="bg-amber-50 rounded-3xl p-8 lg:p-12 shadow-sm border border-amber-100 flex flex-col items-center text-center relative overflow-hidden">
           <Quote
             className="text-amber-200 absolute top-4 left-4"
             size={64}
@@ -196,7 +196,7 @@ function MannaView({ onBack }) {
               {manna.theme}
             </span>
 
-            <p className="text-xl md:text-2xl font-serif text-slate-800 leading-relaxed mb-6">
+            <p className="text-xl md:text-2xl lg:text-3xl font-serif text-slate-800 leading-relaxed mb-6 lg:max-w-2xl">
               "{manna.text}"
             </p>
 
@@ -206,7 +206,7 @@ function MannaView({ onBack }) {
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-8 lg:max-w-2xl lg:mx-auto">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
             Reflexão
           </h3>
@@ -335,81 +335,83 @@ function JournalView({ user, onBack, setIsNavVisible }) {
   // WRITING MODE (Handwriting Style)
   if (isEditing) {
     return (
-      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-scale-up" data-lenis-prevent>
-        {/* Notebook Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-200/60 bg-[#fdfbf7] z-10 sticky top-0">
-          <button
-            onClick={() => setIsEditing(false)}
-            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-400"
-          >
-            <X size={24} />
-          </button>
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            {editingId ? "Editar Nota" : "Nova Nota"}
-          </span>
-          <button
-            onClick={handleSave}
-            disabled={!newContent.trim()}
-            className="px-4 py-2 rounded-full bg-slate-900 text-white font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-lg shadow-slate-200"
-          >
-            Salvar
-          </button>
-        </div>
+      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] lg:bg-black/50 lg:backdrop-blur-sm flex flex-col lg:items-center lg:justify-center animate-scale-up" data-lenis-prevent>
+        <div className="w-full h-full lg:max-w-3xl lg:h-[85vh] lg:rounded-3xl lg:shadow-2xl lg:border lg:border-slate-200/80 lg:overflow-hidden flex flex-col bg-[#fdfbf7] relative">
+          {/* Notebook Header */}
+          <div className="flex justify-between items-center p-6 border-b border-slate-200/60 bg-[#fdfbf7] z-10 sticky top-0">
+            <button
+              onClick={() => setIsEditing(false)}
+              className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-400 lg:cursor-pointer"
+            >
+              <X size={24} />
+            </button>
+            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+              {editingId ? "Editar Nota" : "Nova Nota"}
+            </span>
+            <button
+              onClick={handleSave}
+              disabled={!newContent.trim()}
+              className="px-4 py-2 rounded-full bg-slate-900 text-white font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-lg shadow-slate-200 lg:cursor-pointer"
+            >
+              Salvar
+            </button>
+          </div>
 
-        {/* Notebook Body */}
-        <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
-          {/* Lined Background */}
-          <div
-            className="w-full min-h-full px-0 pt-0"
-            style={{
-              backgroundImage:
-                "linear-gradient(transparent calc(2.5rem - 1px), #cbd5e1 1px)",
-              backgroundSize: "100% 2.5rem",
-              backgroundColor: "#fdfbf7",
-            }}
-          >
-            {/* Margin Line */}
-            <div className="absolute top-0 bottom-0 left-12 w-px bg-red-200/50 pointer-events-none h-full"></div>
+          {/* Notebook Body */}
+          <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
+            {/* Lined Background */}
+            <div
+              className="w-full min-h-full px-0 pt-0"
+              style={{
+                backgroundImage:
+                  "linear-gradient(transparent calc(2.5rem - 1px), #cbd5e1 1px)",
+                backgroundSize: "100% 2.5rem",
+                backgroundColor: "#fdfbf7",
+              }}
+            >
+              {/* Margin Line */}
+              <div className="absolute top-0 bottom-0 left-12 w-px bg-red-200/50 pointer-events-none h-full"></div>
 
-            {/* Pencil Indicator (Aligned to Title Line) */}
-            <Edit3
-              size={18}
-              className="absolute left-6 top-[3.5rem] text-slate-400 animate-pulse pointer-events-none -rotate-90"
-            />
+              {/* Pencil Indicator (Aligned to Title Line) */}
+              <Edit3
+                size={18}
+                className="absolute left-6 top-[3.5rem] text-slate-400 animate-pulse pointer-events-none -rotate-90"
+              />
 
-            {/* Line 1: Date Header */}
-            <div className="w-full h-[2.5rem] flex items-end justify-end px-6 pb-0 relative z-10">
-              <span className="font-hand text-xl text-slate-500 leading-none translate-y-[4px]">
-                {new Intl.DateTimeFormat("pt-BR", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date())}
-              </span>
+              {/* Line 1: Date Header */}
+              <div className="w-full h-[2.5rem] flex items-end justify-end px-6 pb-0 relative z-10">
+                <span className="font-hand text-xl text-slate-500 leading-none translate-y-[4px]">
+                  {new Intl.DateTimeFormat("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }).format(new Date())}
+                </span>
+              </div>
+
+              {/* Line 2: Title */}
+              <input
+                type="text"
+                placeholder="Título..."
+                value={newTitle}
+                onChange={(e) => setNewTitle(capitalizeText(e.target.value))}
+                className="w-full h-[2.5rem] text-3xl font-hand bg-transparent border-none focus:ring-0 outline-none placeholder:text-slate-300 pl-16 pr-6 text-slate-800 leading-[2.5rem] p-0"
+                style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
+              />
+
+              {/* Line 3+: Content */}
+              <textarea
+                ref={textareaRef}
+                placeholder="Escreva aqui..."
+                value={newContent}
+                onChange={(e) => setNewContent(capitalizeText(e.target.value))}
+                className="w-full min-h-[calc(100vh-250px)] bg-transparent border-none focus:ring-0 outline-none resize-none text-slate-700 font-hand text-2xl pl-16 pr-6 placeholder:text-slate-300/50 leading-[2.5rem] p-0 overflow-hidden"
+                style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
+                autoFocus
+              />
             </div>
-
-            {/* Line 2: Title */}
-            <input
-              type="text"
-              placeholder="Título..."
-              value={newTitle}
-              onChange={(e) => setNewTitle(capitalizeText(e.target.value))}
-              className="w-full h-[2.5rem] text-3xl font-hand bg-transparent border-none focus:ring-0 outline-none placeholder:text-slate-300 pl-16 pr-6 text-slate-800 leading-[2.5rem] p-0"
-              style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
-            />
-
-            {/* Line 3+: Content */}
-            <textarea
-              ref={textareaRef}
-              placeholder="Escreva aqui..."
-              value={newContent}
-              onChange={(e) => setNewContent(capitalizeText(e.target.value))}
-              className="w-full min-h-[calc(100vh-250px)] bg-transparent border-none focus:ring-0 outline-none resize-none text-slate-700 font-hand text-2xl pl-16 pr-6 placeholder:text-slate-300/50 leading-[2.5rem] p-0 overflow-hidden"
-              style={{ paddingTop: "0.6rem", paddingLeft: "4rem" }}
-              autoFocus
-            />
           </div>
         </div>
       </div>
@@ -419,34 +421,35 @@ function JournalView({ user, onBack, setIsNavVisible }) {
   // READING MODE (Full Screen Modal - now looks like Notebook)
   if (viewingEntry) {
     return (
-      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] flex flex-col animate-enter-view" data-lenis-prevent>
-        <div className="flex items-center gap-3 p-6 mb-0 border-b border-slate-200/50 bg-[#fdfbf7] z-10 sticky top-0">
-          <button
-            onClick={() => setViewingEntry(null)}
-            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold uppercase tracking-widest text-slate-400">
-              Leitura
-            </h2>
+      <div className="fixed inset-0 z-[110] bg-[#fdfbf7] lg:bg-black/50 lg:backdrop-blur-sm flex flex-col lg:items-center lg:justify-center animate-enter-view" data-lenis-prevent>
+        <div className="w-full h-full lg:max-w-3xl lg:h-[85vh] lg:rounded-3xl lg:shadow-2xl lg:border lg:border-slate-200/80 lg:overflow-hidden flex flex-col bg-[#fdfbf7] relative">
+          <div className="flex items-center gap-3 p-6 mb-0 border-b border-slate-200/50 bg-[#fdfbf7] z-10 sticky top-0">
+            <button
+              onClick={() => setViewingEntry(null)}
+              className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 lg:cursor-pointer"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold uppercase tracking-widest text-slate-400">
+                Leitura
+              </h2>
+            </div>
+            <button
+              onClick={(e) => handleEdit(viewingEntry, e)}
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors mr-2 lg:cursor-pointer"
+            >
+              <Edit3 size={20} />
+            </button>
+            <button
+              onClick={(e) => handleDelete(viewingEntry.id, e)}
+              className="p-2 rounded-full hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors lg:cursor-pointer"
+            >
+              <Trash2 size={20} />
+            </button>
           </div>
-          <button
-            onClick={(e) => handleEdit(viewingEntry, e)}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors mr-2"
-          >
-            <Edit3 size={20} />
-          </button>
-          <button
-            onClick={(e) => handleDelete(viewingEntry.id, e)}
-            className="p-2 rounded-full hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
+          <div className="flex-1 overflow-y-auto p-0 relative w-full h-full">
           {/* Lined Background MATCHING WRITE MODE */}
           <div
             className="w-full min-h-full px-0 pt-0"
@@ -496,20 +499,21 @@ function JournalView({ user, onBack, setIsNavVisible }) {
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   // CARD GRID MODE (Main View)
   const groupedEntries = groupEntriesByMonth(entries);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-hidden flex flex-col animate-slide-up" data-lenis-prevent>
+    <div className="fixed inset-0 z-[100] bg-slate-50 overflow-hidden flex flex-col animate-slide-up lg:static lg:inset-auto lg:z-auto lg:overflow-visible lg:bg-transparent lg:max-w-4xl lg:mx-auto" data-lenis-prevent>
       {/* Sticky Header */}
-      <div className="flex-none bg-white/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm z-20">
+      <div className="flex-none bg-white/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm z-20 lg:px-0 lg:bg-transparent lg:border-b-0">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+            className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors lg:cursor-pointer"
           >
             <ArrowLeft size={22} />
           </button>
@@ -535,7 +539,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
 
               <button
                 onClick={handleCreate}
-                className="w-16 h-16 bg-slate-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                className="w-16 h-16 bg-slate-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all lg:cursor-pointer"
               >
                 <Plus size={32} />
               </button>
@@ -547,12 +551,12 @@ function JournalView({ user, onBack, setIsNavVisible }) {
                   <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2 sticky top-0 bg-[#f8f9fa]/95 backdrop-blur py-2 z-10 w-fit px-3 rounded-r-lg">
                     {month}
                   </h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5">
                     {monthEntries.map((entry) => (
                       <button
                         key={entry.id}
                         onClick={() => setViewingEntry(entry)}
-                        className="bg-white rounded-r-2xl rounded-l-md shadow-sm border-y border-r border-slate-100 hover:shadow-md active:scale-95 transition-all text-left flex h-40 relative group overflow-visible"
+                        className="bg-white rounded-r-2xl rounded-l-md shadow-sm border-y border-r border-slate-100 hover:shadow-md active:scale-95 transition-all text-left flex h-40 relative group overflow-visible lg:cursor-pointer"
                       >
                         {/* Spiral Binding (Left Side) */}
                         <div className="w-6 h-full absolute left-0 top-0 bottom-0 bg-slate-100/50 rounded-l-md border-r border-slate-200/50 flex flex-col justify-evenly items-center py-2 z-10">
@@ -592,13 +596,13 @@ function JournalView({ user, onBack, setIsNavVisible }) {
                           <div className="absolute bottom-1 right-1 flex gap-1 z-20">
                             <div
                               onClick={(e) => handleEdit(entry, e)}
-                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-amber-500 hover:bg-amber-50 active:scale-90 transition-all border border-slate-100"
+                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-amber-500 hover:bg-amber-50 active:scale-90 transition-all border border-slate-100 lg:cursor-pointer"
                             >
                               <Edit3 size={16} />
                             </div>
                             <div
                               onClick={(e) => handleDelete(entry.id, e)}
-                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all border border-slate-100"
+                              className="p-2 bg-white/90 rounded-full shadow-sm text-slate-400 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all border border-slate-100 lg:cursor-pointer"
                             >
                               <Trash2 size={16} />
                             </div>
@@ -619,7 +623,7 @@ function JournalView({ user, onBack, setIsNavVisible }) {
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50">
           <button
             onClick={handleCreate}
-            className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-600/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-4 border-white/20"
+            className="w-16 h-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-600/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all border-4 border-white/20 lg:cursor-pointer"
           >
             <Plus size={32} />
           </button>
@@ -633,8 +637,8 @@ function FavoritesView({ user, onBack }) {
   const { highlights } = useHighlights(user); // Fetches ALL due to our hook update
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-right duration-300" data-lenis-prevent>
-      <div className="min-h-full p-6 pb-24 max-w-md mx-auto">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-right duration-300 lg:static lg:inset-auto lg:z-auto lg:overflow-visible lg:max-w-4xl lg:mx-auto lg:bg-transparent" data-lenis-prevent>
+      <div className="min-h-full p-6 pb-24 max-w-md lg:max-w-4xl mx-auto lg:px-0">
         <Header title="Meus Favoritos" onBack={onBack} />
 
         {highlights.length === 0 && (
@@ -645,7 +649,7 @@ function FavoritesView({ user, onBack }) {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {highlights.map((h) => (
             <div
               key={h.id}
@@ -684,11 +688,11 @@ function PrayersView({ user, onBack }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-bottom duration-300" data-lenis-prevent>
-      <div className="min-h-full p-6 pb-24 max-w-md mx-auto">
+    <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in slide-in-from-bottom duration-300 lg:static lg:inset-auto lg:z-auto lg:overflow-visible lg:max-w-4xl lg:mx-auto lg:bg-transparent" data-lenis-prevent>
+      <div className="min-h-full p-6 pb-24 max-w-md lg:max-w-4xl mx-auto lg:px-0">
         <Header title="Motivos de Oração" onBack={onBack} />
 
-        <form onSubmit={handleSubmit} className="mb-8 relative">
+        <form onSubmit={handleSubmit} className="mb-8 relative lg:max-w-xl">
           <input
             type="text"
             value={input}
@@ -698,13 +702,13 @@ function PrayersView({ user, onBack }) {
           />
           <button
             type="submit"
-            className="absolute right-2 top-2 bottom-2 w-10 bg-rose-500 text-white rounded-xl flex items-center justify-center hover:bg-rose-600 transition-colors"
+            className="absolute right-2 top-2 bottom-2 w-10 bg-rose-500 text-white rounded-xl flex items-center justify-center hover:bg-rose-600 transition-colors lg:cursor-pointer"
           >
             <Plus size={20} />
           </button>
         </form>
 
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {prayers.map((prayer) => (
             <div
               key={prayer.id}
@@ -716,7 +720,7 @@ function PrayersView({ user, onBack }) {
             >
               <button
                 onClick={() => toggleStatus(prayer.id, prayer.status)}
-                className={`mt-1 mr-3 transition-colors ${
+                className={`mt-1 mr-3 transition-colors lg:cursor-pointer ${
                   prayer.status === "answered"
                     ? "text-green-500"
                     : "text-slate-300 hover:text-rose-400"
@@ -741,7 +745,7 @@ function PrayersView({ user, onBack }) {
               </div>
               <button
                 onClick={() => deletePrayer(prayer.id)}
-                className="text-slate-200 hover:text-red-400 ml-2"
+                className="text-slate-200 hover:text-red-400 ml-2 lg:cursor-pointer"
               >
                 <Trash2 size={16} />
               </button>

@@ -37,7 +37,7 @@ export default function BiblosChat() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-24 right-4 z-50 bg-slate-900 text-white p-4 rounded-full shadow-2xl hover:scale-110 hover:bg-slate-800 transition-all duration-300 animate-bounce-slow group"
+          className="fixed bottom-24 right-4 z-50 bg-slate-900 text-white p-4 rounded-full shadow-2xl hover:scale-110 hover:bg-slate-800 transition-all duration-300 animate-bounce-slow group lg:bottom-8 lg:right-8 lg:cursor-pointer"
         >
           <MessageCircle
             size={28}
@@ -59,7 +59,7 @@ export default function BiblosChat() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="bg-white pointer-events-auto w-full h-[85vh] sm:h-[600px] sm:w-[400px] sm:rounded-3xl rounded-t-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:m-4 relative">
+          <div className="bg-white pointer-events-auto w-full h-[85vh] sm:h-[600px] sm:w-[400px] lg:w-[460px] lg:h-[660px] sm:rounded-3xl lg:rounded-3xl rounded-t-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:m-4 relative">
             {/* HEADER */}
             <div className="bg-slate-900 p-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
@@ -79,14 +79,14 @@ export default function BiblosChat() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={clearChat}
-                  className="text-slate-400 hover:text-red-400 transition-colors p-2"
+                  className="text-slate-400 hover:text-red-400 transition-colors p-2 lg:cursor-pointer"
                   title="Limpar Conversa"
                 >
                   <Trash2 size={18} />
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-slate-400 hover:text-white transition-colors p-2"
+                  className="text-slate-400 hover:text-white transition-colors p-2 lg:cursor-pointer"
                 >
                   <X size={24} />
                 </button>
@@ -173,7 +173,7 @@ export default function BiblosChat() {
               <button
                 type="submit"
                 disabled={!inputText.trim() || loading}
-                className="bg-amber-500 text-white p-3 rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-500 transition-colors shadow-md shadow-amber-500/20"
+                className="bg-amber-500 text-white p-3 rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-500 transition-colors shadow-md shadow-amber-500/20 lg:cursor-pointer"
               >
                 <Send size={20} />
               </button>

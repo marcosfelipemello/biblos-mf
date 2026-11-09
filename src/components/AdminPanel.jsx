@@ -151,10 +151,10 @@ export default function AdminPanel({ onBack }) {
   };
 
   return (
-    <div className="animate-enter-view px-4 pt-6">
+    <div className="animate-enter-view px-4 pt-6 lg:max-w-3xl lg:mx-auto lg:px-8 lg:pt-10">
       <button
         onClick={onBack}
-        className="flex items-center text-slate-500 hover:text-slate-800 mb-6 transition-colors"
+        className="flex items-center text-slate-500 hover:text-slate-800 mb-6 transition-colors lg:cursor-pointer"
       >
         <ArrowLeft size={20} className="mr-2" /> Voltar
       </button>
@@ -184,7 +184,7 @@ export default function AdminPanel({ onBack }) {
           <button
             onClick={handleSeedData}
             disabled={loading}
-            className="w-full py-2.5 bg-white border border-amber-200 text-amber-700 hover:bg-amber-100 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm"
+            className="w-full py-2.5 bg-white border border-amber-200 text-amber-700 hover:bg-amber-100 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm lg:cursor-pointer"
           >
             {loading ? (
               <RefreshCw className="animate-spin" size={16} />

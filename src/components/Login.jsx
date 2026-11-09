@@ -72,7 +72,7 @@ export default function Login() {
       {/* Background Glow */}
       <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[60%] bg-gradient-to-br from-amber-100/40 via-purple-50/20 to-transparent blur-3xl pointer-events-none z-0" />
 
-      <div className="w-full max-w-sm relative z-10 animate-pop-in">
+      <div className="w-full max-w-sm lg:max-w-md relative z-10 animate-pop-in lg:bg-white/85 lg:backdrop-blur-md lg:p-10 lg:rounded-3xl lg:border lg:border-slate-100 lg:shadow-2xl">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6 animate-[bounce_3s_infinite]">
             <Logo size={140} />
@@ -95,7 +95,7 @@ export default function Login() {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3"
+            className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 lg:cursor-pointer"
           >
             {loading ? (
               "Iniciando..."
@@ -117,7 +117,7 @@ export default function Login() {
           <button
             onClick={handleAnonymousLogin}
             disabled={loading}
-            className="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-2xl font-bold text-sm transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 lg:cursor-pointer"
           >
             Continuar como Visitante
           </button>
@@ -131,7 +131,7 @@ export default function Login() {
         <div className="mt-12 text-center">
           <button
             onClick={() => setShowInstallModal(true)}
-            className="text-slate-400 font-medium text-sm flex items-center justify-center gap-2 mx-auto hover:text-amber-600 transition-colors py-2 px-4 rounded-full hover:bg-slate-50"
+            className="text-slate-400 font-medium text-sm flex items-center justify-center gap-2 mx-auto hover:text-amber-600 transition-colors py-2 px-4 rounded-full hover:bg-slate-50 lg:cursor-pointer"
           >
             <Download size={16} />
             Instalar Aplicativo
@@ -146,12 +146,12 @@ export default function Login() {
           onClick={() => setShowInstallModal(false)}
         >
           <div
-            className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative"
+            className="bg-white w-full max-w-sm lg:max-w-md rounded-3xl p-6 lg:p-8 shadow-2xl animate-slide-up relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowInstallModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors lg:cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -207,7 +207,7 @@ export default function Login() {
 
             <button
               onClick={() => setShowInstallModal(false)}
-              className="w-full mt-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors"
+              className="w-full mt-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors lg:cursor-pointer"
             >
               Entendi
             </button>

@@ -41,11 +41,11 @@ export default function NotificationModal({ isOpen, onClose, push }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 p-6 transform transition-all animate-scale-in relative">
+      <div className="bg-white w-full max-w-sm lg:max-w-md rounded-3xl shadow-2xl border border-slate-100 p-6 lg:p-8 transform transition-all animate-scale-in relative">
         {/* Botão Fechar */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors lg:cursor-pointer"
           title="Fechar"
         >
           <X size={18} />
@@ -284,7 +284,7 @@ export default function NotificationModal({ isOpen, onClose, push }) {
             <button
               onClick={subscribe}
               disabled={loading || isDenied || supported === false}
-              className="w-full py-3.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-bold text-sm shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full py-3.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-bold text-sm shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none lg:cursor-pointer"
             >
               {loading ? (
                 <>

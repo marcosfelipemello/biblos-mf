@@ -75,7 +75,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
       <div className="pb-20 animate-enter-view">
         {/* Header */}
         <div
-          className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-center bg-white/95 backdrop-blur border-b border-slate-100 py-3 px-3 shadow-sm mb-4 ${
+          className={`sticky top-0 z-30 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center justify-center bg-white/95 backdrop-blur border-b border-slate-100 py-3 px-3 shadow-sm mb-4 lg:hidden ${
             isHeaderVisible
               ? "translate-y-0 opacity-100"
               : "-translate-y-full opacity-0 pointer-events-none"
@@ -88,11 +88,11 @@ export default function Hymnal({ isHeaderVisible = true }) {
         </div>
 
         {/* Cards */}
-        <div className="px-4 max-w-2xl mx-auto grid grid-cols-1 gap-4 mt-4">
+        <div className="px-4 max-w-2xl lg:max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mt-4 lg:mt-8">
           {/* Cantor Cristão Card */}
           <button
             onClick={() => goToIndex("cantor")}
-            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6 text-left transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-200 active:scale-[0.98]"
+            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6 lg:p-8 text-left transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-200 active:scale-[0.98] lg:cursor-pointer"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/30 rounded-full blur-2xl -translate-y-8 translate-x-8 group-hover:bg-amber-200/40 transition-colors" />
             <div className="relative z-10">
@@ -111,7 +111,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
           {/* Harpa Cristã Card */}
           <button
             onClick={() => goToIndex("harpa")}
-            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 text-left transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-200 active:scale-[0.98]"
+            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 lg:p-8 text-left transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-200 active:scale-[0.98] lg:cursor-pointer"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full blur-2xl -translate-y-8 translate-x-8 group-hover:bg-blue-200/40 transition-colors" />
             <div className="relative z-10">
@@ -143,10 +143,10 @@ export default function Hymnal({ isHeaderVisible = true }) {
               : "-translate-y-full opacity-0 pointer-events-none"
           }`}
         >
-          <div className="flex items-center gap-2 py-2 px-3">
+          <div className="flex items-center gap-2 py-2 px-3 lg:max-w-4xl lg:mx-auto">
             <button
               onClick={goBack}
-              className="p-1.5 rounded-full hover:bg-slate-100 transition-all"
+              className="p-1.5 rounded-full hover:bg-slate-100 transition-all lg:cursor-pointer"
             >
               <ChevronLeft size={20} className="text-slate-600" />
             </button>
@@ -156,7 +156,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
           </div>
 
           {/* Search */}
-          <div className="px-3 pb-2">
+          <div className="px-3 pb-2 lg:max-w-4xl lg:mx-auto">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search
@@ -189,7 +189,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
         </div>
 
         {/* Hymn List */}
-        <div className="px-4 max-w-2xl mx-auto mt-2">
+        <div className="px-4 max-w-2xl lg:max-w-4xl mx-auto mt-2 lg:mt-4 lg:px-8">
           {loadingHymns ? (
             <div className="space-y-2 animate-pulse mt-4">
               {Array.from({ length: 8 }, (_, i) => (
@@ -201,12 +201,12 @@ export default function Hymnal({ isHeaderVisible = true }) {
               Nenhum hino encontrado
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
               {filteredHymns.map((hymn) => (
                 <button
                   key={hymn.number}
                   onClick={() => goToHymn(hymn)}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-all text-left group"
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-all text-left group lg:cursor-pointer"
                 >
                   <span className="w-10 h-10 rounded-lg bg-slate-100 group-hover:bg-amber-50 flex items-center justify-center font-bold text-sm text-slate-500 group-hover:text-amber-600 transition-colors flex-shrink-0">
                     {hymn.number}
@@ -237,10 +237,10 @@ export default function Hymnal({ isHeaderVisible = true }) {
               : "-translate-y-full opacity-0 pointer-events-none"
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 lg:max-w-4xl lg:mx-auto">
             <button
               onClick={goBack}
-              className="p-1.5 rounded-full hover:bg-slate-100 transition-all"
+              className="p-1.5 rounded-full hover:bg-slate-100 transition-all lg:cursor-pointer"
             >
               <ChevronLeft size={20} className="text-slate-600" />
             </button>
@@ -269,13 +269,13 @@ export default function Hymnal({ isHeaderVisible = true }) {
         </div>
 
         {/* Hymn Content */}
-        <div className="px-6 max-w-2xl mx-auto mt-6">
+        <div className="px-6 max-w-2xl lg:max-w-[70ch] mx-auto mt-6 lg:mt-8">
           {/* Title Block */}
           <div className="text-center mb-8">
             <span className="inline-block px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold mb-3">
               Nº {selectedHymn.number}
             </span>
-            <h1 className="font-serif font-bold text-2xl text-slate-800 leading-tight">
+            <h1 className="font-serif font-bold text-2xl lg:text-3xl text-slate-800 leading-tight">
               {selectedHymn.title}
             </h1>
             <div className="w-12 h-0.5 bg-amber-300 mx-auto mt-3 rounded-full" />
@@ -289,7 +289,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
                   <span className="absolute left-0 top-1 text-[10px] font-bold text-slate-300 select-none">
                     {verse.number}
                   </span>
-                  <p className="text-[17px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
+                  <p className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif whitespace-pre-line">
                     {verse.text}
                   </p>
                 </div>
@@ -300,7 +300,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
                   <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 block">
                     Coro
                   </span>
-                  <p className="text-[17px] leading-relaxed text-slate-700 font-serif italic whitespace-pre-line">
+                  <p className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif italic whitespace-pre-line">
                     {selectedHymn.chorus}
                   </p>
                 </div>
@@ -309,7 +309,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
           ) : (
             // CANTOR CRISTÃO: plain lyrics
             <div className="relative">
-              <p className="text-[17px] leading-relaxed text-slate-700 font-serif whitespace-pre-line">
+              <p className="text-[17px] lg:text-[19px] leading-relaxed lg:leading-[2] text-slate-700 font-serif whitespace-pre-line">
                 {selectedHymn.lyrics}
               </p>
             </div>
@@ -319,7 +319,7 @@ export default function Hymnal({ isHeaderVisible = true }) {
           <div className="pt-8 pb-4 flex justify-center gap-3">
             <button
               onClick={goBack}
-              className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all"
+              className="px-6 py-3 bg-slate-50 border border-slate-200 rounded-full text-slate-600 font-bold text-sm hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all lg:cursor-pointer"
             >
               Voltar ao Índice
             </button>

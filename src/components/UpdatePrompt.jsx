@@ -14,7 +14,7 @@ export default function UpdatePrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up">
+    <div className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up lg:bottom-6 lg:right-6 lg:left-auto lg:max-w-md">
       <div className="bg-slate-900 text-white p-4 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-700 flex items-center justify-between gap-4 max-w-md mx-auto">
         <div className="flex items-center gap-3">
           <div className="bg-amber-500 p-2 rounded-lg text-slate-900 animate-pulse">
@@ -31,13 +31,13 @@ export default function UpdatePrompt() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleClose}
-            className="p-2 text-slate-400 hover:text-white transition-colors"
+            className="p-2 text-slate-400 hover:text-white transition-colors lg:cursor-pointer"
           >
             <X size={18} />
           </button>
           <button
             onClick={handleUpdate}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors shadow-lg shadow-amber-500/20"
+            className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors shadow-lg shadow-amber-500/20 lg:cursor-pointer"
           >
             Atualizar
           </button>
