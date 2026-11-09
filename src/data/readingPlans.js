@@ -1,4 +1,5 @@
 import { BIBLE_CHAPTER_COUNTS } from "./bibleStructure.js";
+import { PLANO_SALVACAO } from "./planoSalvacao.js";
 
 const OT = Object.keys(BIBLE_CHAPTER_COUNTS).slice(0, 39);
 const NT = Object.keys(BIBLE_CHAPTER_COUNTS).slice(39);
@@ -96,7 +97,11 @@ export const READING_PLANS = [
   },
 ];
 
-export const getPlan = (id) => READING_PLANS.find((p) => p.id === id);
+// O Plano da Salvação tem tela própria e cronograma escrito à mão, por isso fica fora de
+// READING_PLANS (o catálogo e o teste de cobertura de livros), mas o getPlan o encontra:
+// o aviso de plano parado (netlify/lib/plano-parado.js) passa a valer para ele também.
+export const getPlan = (id) =>
+  id === PLANO_SALVACAO.id ? PLANO_SALVACAO : READING_PLANS.find((p) => p.id === id);
 
 /** Todos os capítulos dos livros, em ordem: ["Gênesis 1", "Gênesis 2", ...] */
 export function listChapters(books) {
@@ -115,6 +120,7 @@ export function listChapters(books) {
  * nenhum dia fica vazio e o último dia nunca fica sobrecarregado.
  */
 export function buildSchedule(plan) {
+  if (plan.schedule) return plan.schedule;
   const refs = listChapters(plan.books);
   const days = Math.min(plan.days, refs.length);
   const base = Math.floor(refs.length / days);

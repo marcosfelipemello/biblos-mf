@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap");
+
+/* Plano da Salvação: tudo com prefixo ps- para não vazar para o resto do app. */
+.ps-display { font-family: "Cormorant Garamond", ui-serif, Georgia, serif; }
+
+/* Céu estrelado: três camadas de pontos que piscam em ritmos diferentes */
+.ps-stars, .ps-stars::before, .ps-stars::after {
+  position: absolute; inset: 0; pointer-events: none;
+  background-repeat: repeat;
+}
+.ps-stars {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff9, transparent),
+    radial-gradient(1px 1px at 90px 120px, #fff7, transparent),
+    radial-gradient(1.5px 1.5px at 160px 60px, #fffc, transparent),
+    radial-gradient(1px 1px at 230px 170px, #fff8, transparent);
+  background-size: 250px 200px;
+  animation: ps-twinkle 6s ease-in-out infinite;
+}
+.ps-stars::before {
+  content: "";
+  background-image:
+    radial-gradient(1px 1px at 50px 80px, #fde68a, transparent),
+    radial-gradient(1px 1px at 140px 20px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 200px 140px, #e0e7ff, transparent);
+  background-size: 300px 220px;
+  animation: ps-twinkle 9s ease-in-out infinite reverse;
+}
+.ps-stars::after {
+  content: "";
+  background-image: radial-gradient(2px 2px at 120px 100px, #fff, transparent);
+  background-size: 420px 330px;
+  animation: ps-twinkle 4s ease-in-out infinite 1s, ps-drift 60s linear infinite;
+}
+@keyframes ps-twinkle { 0%, 100% { opacity: .35 } 50% { opacity: 1 } }
+@keyframes ps-drift { to { background-position: 420px 0 } }
+
+/* Luz que nasce de baixo (aurora) e respira */
+.ps-aurora {
+  position: absolute; left: 50%; bottom: -40%; width: 140%; aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--ps-glow, #fbbf24) 0%, transparent 70%);
+  opacity: .45; filter: blur(10px);
+  animation: ps-breathe 7s ease-in-out infinite;
+}
+@keyframes ps-breathe { 0%, 100% { opacity: .3; transform: translateX(-50%) scale(.95) } 50% { opacity: .55; transform: translateX(-50%) scale(1.05) } }
+
+/* Raios de luz girando bem devagar atrás do ícone do ato */
+.ps-rays {
+  position: absolute; inset: -60%; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, #ffffff14 0deg 6deg, transparent 6deg 18deg);
+  mask-image: radial-gradient(closest-side, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 20%, transparent 75%);
+  animation: ps-spin 80s linear infinite;
+}
+@keyframes ps-spin { to { transform: rotate(360deg) } }
+
+/* Entrada ao rolar: o JS põe .is-in quando o elemento aparece */
+.ps-reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1); }
+.ps-reveal.is-in { opacity: 1; transform: none; }
+
+/* Linha do caminho: dourada até o progresso */
+.ps-path-fill { transition: height 1.4s cubic-bezier(.2, .7, .2, 1); }
+
+/* Dia atual: halo que pulsa */
+/* .ps-halo vai junto de "absolute": não definir position aqui */
+.ps-halo::before, .ps-halo::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 9999px;
+  border: 2px solid var(--ps-accent, #f59e0b); opacity: 0;
+  animation: ps-ping 2.4s cubic-bezier(0, 0, .2, 1) infinite;
+}
+.ps-halo::after { animation-delay: 1.2s; }
+@keyframes ps-ping { 0% { transform: scale(.85); opacity: .7 } 100% { transform: scale(1.7); opacity: 0 } }
+
+/* Versículos entrando um a um */
+.ps-verse { opacity: 0; animation: ps-fade-up .6s ease forwards; }
+@keyframes ps-fade-up { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+/* Capitular (primeira letra grande) da explicação */
+.ps-dropcap::first-letter {
+  font-family: "Cormorant Garamond", ui-serif, Georgia, serif;
+  float: left; font-size: 3.6em; line-height: .8; font-weight: 700;
+  margin: .08em .1em 0 0; color: var(--ps-accent, #b45309);
+}
+
+/* Cartão "Para meditar": brilho que respira */
+.ps-meditar { position: relative; isolation: isolate; }
+.ps-meditar::before {
+  content: ""; position: absolute; inset: -2px; border-radius: inherit; z-index: -1;
+  background: conic-gradient(from var(--ps-ang, 0deg), var(--ps-accent, #f59e0b), transparent 30%, transparent 70%, var(--ps-accent, #f59e0b));
+  animation: ps-orbit 6s linear infinite; opacity: .7;
+}
+@property --ps-ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes ps-orbit { to { --ps-ang: 360deg } }
+
+/* Explosão de luz ao concluir o dia */
+.ps-burst { position: fixed; inset: 0; pointer-events: none; z-index: 300; display: grid; place-items: center; }
+.ps-burst i {
+  position: absolute; width: 40px; height: 40px; border-radius: 9999px;
+  border: 2px solid #fcd34d; animation: ps-ring 1.4s cubic-bezier(.1, .7, .3, 1) forwards;
+}
+.ps-burst i:nth-child(2) { animation-delay: .15s; border-color: #fde68a; }
+.ps-burst i:nth-child(3) { animation-delay: .3s; border-color: #fff7d6; }
+.ps-burst b {
+  position: absolute; width: 6px; height: 6px; border-radius: 9999px; background: #fcd34d;
+  box-shadow: 0 0 12px #fbbf24;
+  animation: ps-spark 1.3s cubic-bezier(.1, .7, .3, 1) forwards;
+}
+.ps-burst .ps-flash { position: absolute; inset: 0; background: radial-gradient(circle, #fff8e1cc, transparent 60%); animation: ps-flash 1.2s ease-out forwards; }
+@keyframes ps-ring { from { transform: scale(.2); opacity: 1 } to { transform: scale(14); opacity: 0 } }
+@keyframes ps-spark { from { transform: rotate(var(--r)) translateY(0); opacity: 1 } to { transform: rotate(var(--r)) translateY(-38vmin); opacity: 0 } }
+@keyframes ps-flash { from { opacity: 1 } to { opacity: 0 } }
+
+/* Folha subindo (abrir um dia) */
+.ps-sheet { animation: ps-sheet-in .55s cubic-bezier(.2, .8, .2, 1); }
+@keyframes ps-sheet-in { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+.ps-details summary { list-style: none; cursor: pointer; }
+.ps-details summary::-webkit-details-marker { display: none; }
+.ps-details[open] .ps-chev { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-stars, .ps-stars::before, .ps-stars::after, .ps-aurora, .ps-rays,
+  .ps-halo::before, .ps-halo::after, .ps-meditar::before { animation: none !important; }
+  .ps-reveal { opacity: 1; transform: none; transition: none; }
+  .ps-verse, .ps-sheet { animation: none; opacity: 1; }
+  .ps-burst { display: none; }
+}

@@ -31,6 +31,26 @@ export const getVerseCount = async (bookName, chapter) => {
   return bookData?.chapters[chapter - 1]?.length || 0;
 };
 
+/**
+ * Versículos de um trecho, para mostrar o texto dentro de um plano.
+ * capFim/ate podem passar do capítulo (Gênesis 1.1–2.3); de/ate nulos = capítulo inteiro.
+ * Devolve [{ cap, v, texto }].
+ */
+export const getPassage = async ({ livro, cap, de, capFim, ate }) => {
+  const abbrev = NAME_TO_ABBREV[livro?.toLowerCase()];
+  if (!abbrev) return [];
+  const bible = await loadBible();
+  const book = bible.find((b) => b.abbrev === abbrev);
+  const out = [];
+  for (let c = cap; c <= (capFim ?? cap); c++) {
+    const versos = book?.chapters[c - 1] || [];
+    const ini = c === cap && de ? de : 1;
+    const fim = c === capFim && ate ? ate : versos.length;
+    for (let v = ini; v <= fim && v <= versos.length; v++) out.push({ cap: c, v, texto: versos[v - 1] });
+  }
+  return out;
+};
+
 export const useBibleApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

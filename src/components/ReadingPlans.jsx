@@ -12,6 +12,8 @@ import {
 import { READING_PLANS, getPlan, buildSchedule } from "../data/readingPlans";
 import { useReadingPlan } from "../hooks/useReadingPlan";
 import CouplesPlan from "./CouplesPlan";
+import SalvationPlan from "./SalvationPlan";
+import { PLANO_SALVACAO } from "../data/planoSalvacao";
 
 export default function ReadingPlans({ user, onBack, goToBibleReference }) {
   const [selectedId, setSelectedId] = useState(null);
@@ -23,6 +25,18 @@ export default function ReadingPlans({ user, onBack, goToBibleReference }) {
         user={user}
         onBack={() => setSelectedId(null)}
         goToBibleReference={goToBibleReference}
+      />
+    );
+  }
+
+  if (selectedId === PLANO_SALVACAO.id) {
+    return (
+      <SalvationPlan
+        user={user}
+        state={plans.progress[PLANO_SALVACAO.id]}
+        onBack={() => setSelectedId(null)}
+        goToBibleReference={goToBibleReference}
+        {...plans}
       />
     );
   }
@@ -63,6 +77,31 @@ function Catalog({ progress, onOpen, onBack }) {
       </div>
 
       <div className="p-4 pb-32 space-y-3">
+        {/* Destaque: Plano da Salvação */}
+        <button
+          onClick={() => onOpen(PLANO_SALVACAO.id)}
+          className="w-full relative overflow-hidden rounded-3xl p-5 text-left text-white bg-gradient-to-br from-[#0b1026] via-[#312e81] to-[#92400e] shadow-[0_12px_40px_-12px_rgba(146,64,14,0.6)] active:scale-[0.98] transition-all duration-300 group"
+        >
+          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-amber-400/30 blur-3xl" />
+          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(1px_1px_at_20px_30px,#fff,transparent),radial-gradient(1px_1px_at_120px_70px,#fff,transparent),radial-gradient(1.5px_1.5px_at_220px_20px,#fde68a,transparent),radial-gradient(1px_1px_at_280px_90px,#fff,transparent)]" />
+          <div className="relative z-10">
+            <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">
+              30 dias · especial
+            </span>
+            <h3 className="font-serif text-2xl font-bold leading-tight mt-2">Plano da Salvação</h3>
+            <p className="font-serif italic text-amber-100/90 text-sm">{PLANO_SALVACAO.subtitulo}</p>
+            <p className="text-indigo-100/70 text-xs mt-1.5">{PLANO_SALVACAO.desc}</p>
+            {progress[PLANO_SALVACAO.id] && (
+              <div className="mt-3 h-1.5 bg-white/15 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-200 to-amber-400 rounded-full"
+                  style={{ width: `${Math.round(((progress[PLANO_SALVACAO.id].completedDays?.length || 0) / PLANO_SALVACAO.days) * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+        </button>
+
         {/* Destaque: plano para casais */}
         <button
           onClick={() => onOpen("casais")}

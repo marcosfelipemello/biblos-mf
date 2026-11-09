@@ -84,6 +84,9 @@ export async function executarPlanoParado() {
       const planData = planDoc.data() || {};
       const plan = getPlan(planId);
       if (!plan) continue;
+      // O Plano da Salvação tem lembrete diário próprio (salvacao-do-dia, mesmo horário):
+      // contar aqui também mandaria dois avisos na mesma noite.
+      if (planId === "salvacao-30") continue;
 
       const completedDays = Array.isArray(planData.completedDays)
         ? planData.completedDays
