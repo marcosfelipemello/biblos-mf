@@ -23,6 +23,8 @@ import {
   Shield,
   BookHeart, // Icon for Devotional
   Bell,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import Logo from "./Logo";
 import Lenis from "lenis";
@@ -55,6 +57,16 @@ export default function Dashboard() {
   const [devotionalsKey, setDevotionalsKey] = useState(0);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isNavVisible, setIsNavVisible] = useState(true);
+  // Barra lateral escondida (só computador), lembrada neste navegador
+  const [barraEscondida, setBarraEscondida] = useState(() => {
+    try { return localStorage.getItem("biblos_barra_escondida") === "1"; } catch { return false; }
+  });
+  const alternarBarra = () => {
+    setBarraEscondida((v) => {
+      try { localStorage.setItem("biblos_barra_escondida", v ? "0" : "1"); } catch { /* sem armazenamento */ }
+      return !v;
+    });
+  };
 
   // Lenis Refs
   const atlasRef = React.useRef(null);
@@ -99,6 +111,9 @@ export default function Dashboard() {
       smoothWheel: true,
       wheelMultiplier: 1.2,
       touchMultiplier: 2.5,
+      // No computador a rolagem da Bíblia fica nas colunas internas (livros e leitura):
+      // sem isso o Lenis segura a rodinha do mouse e a leitura não rola.
+      prevent: () => window.matchMedia("(min-width: 1024px)").matches,
     });
     setBibleLenis(lenisInstance);
     return () => lenisInstance.destroy();
@@ -380,8 +395,28 @@ export default function Dashboard() {
       <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[60%] bg-gradient-to-br from-amber-100/40 via-purple-50/20 to-transparent blur-3xl pointer-events-none z-0" />
 
       {/* DESKTOP SIDEBAR - Only visible on lg: (>= 1024px) */}
-      <aside data-barra-lateral className="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-white/80 lg:backdrop-blur-md lg:h-full lg:z-30 lg:justify-between lg:p-6 select-none shadow-[2px_0_15px_-4px_rgba(0,0,0,0.03)]">
+      {barraEscondida && (
+        <div data-barra-trilho className="hidden lg:flex lg:flex-col lg:items-center lg:w-16 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-white/80 lg:h-full lg:z-30 lg:pt-6 select-none">
+          <button
+            onClick={alternarBarra}
+            title="Mostrar barra lateral"
+            aria-label="Mostrar barra lateral"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-500 hover:bg-amber-50 hover:text-amber-600 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+          >
+            <PanelLeftOpen size={20} />
+          </button>
+        </div>
+      )}
+      <aside data-barra-lateral data-escondida={barraEscondida || undefined} className="hidden lg:flex lg:relative lg:flex-col lg:w-72 lg:shrink-0 lg:border-r lg:border-slate-100 lg:bg-white/80 lg:backdrop-blur-md lg:h-full lg:z-30 lg:justify-between lg:p-6 select-none shadow-[2px_0_15px_-4px_rgba(0,0,0,0.03)]">
         <div>
+          <button
+            onClick={alternarBarra}
+            title="Esconder barra lateral"
+            aria-label="Esconder barra lateral"
+            className="absolute top-7 right-4 w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-amber-50 hover:text-amber-600 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+          >
+            <PanelLeftClose size={18} />
+          </button>
           {/* Brand Logo */}
           <button
             onClick={() => setView("neutral")}

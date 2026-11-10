@@ -170,6 +170,7 @@ export default function BibleReader({
 
   // Track previous location
   const lastLocation = React.useRef({ book: null, chapter: null });
+  const colunaRef = React.useRef(null);
   const didRestore = React.useRef(false);
 
   React.useLayoutEffect(() => {
@@ -230,6 +231,7 @@ export default function BibleReader({
         } else {
           scrollContainerRef.current.scrollTop = 0;
         }
+        if (colunaRef.current) colunaRef.current.scrollTop = 0; // computador: a leitura rola aqui
         lastLocation.current = { book, chapter };
       }
     }
@@ -296,7 +298,7 @@ export default function BibleReader({
         </div>
 
         {/* Scrollable Books List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-0.5 no-scrollbar">
+        <div data-rolagem-pc className="flex-1 overflow-y-auto p-2 space-y-0.5 no-scrollbar">
           {(desktopTestament === "OT" ? OT_BOOKS : NT_BOOKS).map((b) => (
             <button
               key={b}
@@ -324,7 +326,7 @@ export default function BibleReader({
         </div>
 
         {/* Chapters Grid for Active Book */}
-        <div className="p-3 border-t border-slate-200/60 bg-white/80 max-h-48 overflow-y-auto no-scrollbar shrink-0">
+        <div data-rolagem-pc className="p-3 border-t border-slate-200/60 bg-white/80 max-h-48 overflow-y-auto no-scrollbar shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
               Capítulos • {book}
@@ -352,7 +354,7 @@ export default function BibleReader({
       </aside>
 
       {/* READING COLUMN CONTAINER */}
-      <div className="flex-1 lg:overflow-y-auto lg:h-full lg:px-12 lg:py-8 lg:flex lg:flex-col lg:items-center no-scrollbar w-full">
+      <div ref={colunaRef} data-rolagem-pc className="flex-1 lg:overflow-y-auto lg:h-full lg:px-12 lg:py-8 lg:flex lg:flex-col lg:items-center no-scrollbar w-full">
         {/* Botão de tela cheia (só computador) */}
         <button
           onClick={alternarTelaCheia}
